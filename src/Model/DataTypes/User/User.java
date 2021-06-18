@@ -11,7 +11,7 @@ public class User implements Serializable {
     private String password;
     private String firstName;
     private String lastName;
-    private int age;
+    private String birthDate;
     private Gender gender;
 
     public ArrayList<Post> getPosts() {
@@ -28,17 +28,19 @@ public class User implements Serializable {
         return followings;
     }
 
-    private ArrayList<User> followers;
-    private ArrayList<User> followings;
+    private final ArrayList<User> followers;
+    private final ArrayList<User> followings;
 
-    public User(String username, String password, String firstName, String lastName, int age, Gender gender) {
+    public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.age = age;
+        this.birthDate = birthDate;
         this.gender = gender;
         posts = new ArrayList<>();
+        followers = new ArrayList<>();
+        followings = new ArrayList<>();
     }
 
     public String getUsername() {
@@ -73,12 +75,12 @@ public class User implements Serializable {
         this.lastName = lastName;
     }
 
-    public int getAge() {
-        return age;
+    public String getBirthDate() {
+        return birthDate;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
     }
 
     public Gender getGender() {

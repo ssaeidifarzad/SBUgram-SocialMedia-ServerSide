@@ -7,7 +7,7 @@ public class SignupResponse implements ServerMessage {
     private ArrayList<String> responses = new ArrayList<>();
 
     public void addResponse(String response) {
-
+        responses.add(response);
     }
 
     public ArrayList<String> getResponses() {

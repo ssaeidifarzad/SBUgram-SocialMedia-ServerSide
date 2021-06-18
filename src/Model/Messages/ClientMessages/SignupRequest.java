@@ -8,15 +8,15 @@ public class SignupRequest implements ClientMessage {
     private String password;
     private String firstName;
     private String lastName;
-    private int age;
+    private String birthDate;
     private Gender gender;
 
-    public SignupRequest(String username, String password, String firstName, String lastName, int age, Gender gender) {
+    public SignupRequest(String username, String password, String firstName, String lastName, String birthDate, Gender gender) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.age = age;
+        this.birthDate = birthDate;
         this.gender = gender;
     }
 
@@ -36,8 +36,8 @@ public class SignupRequest implements ClientMessage {
         return lastName;
     }
 
-    public int getAge() {
-        return age;
+    public String getBirthDate() {
+        return birthDate;
     }
 
     public Gender getGender() {
