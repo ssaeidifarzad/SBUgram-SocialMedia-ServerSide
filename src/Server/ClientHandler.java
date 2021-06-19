@@ -4,6 +4,7 @@ import DataBase.Database;
 import DataBase.UserDataHandler;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
+import Model.Messages.ServerMessages.EditProfileResponse;
 import Model.Messages.ServerMessages.LoginResponse;
 import Model.Messages.ServerMessages.ServerMessage;
 import Model.Messages.ServerMessages.SignupResponse;
@@ -41,6 +42,10 @@ public class ClientHandler implements Runnable {
                     login((LoginRequest) message);
                 } else if (message instanceof SignupRequest) {
                     signup(((SignupRequest) message));
+                } else if ((message instanceof EditProfileRequst)) {
+                    editProfile(((EditProfileRequst) message));
+                } else if (message instanceof LogoutRequest) {
+                    logout();
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -115,10 +120,11 @@ public class ClientHandler implements Runnable {
                     signupRequest.getGender()
             );
             Database.getInstance().addUser(user);
+            UserDataHandler udh = new UserDataHandler(user);
             if (signupRequest.isHasPhoto()) {
                 try {
                     ImageMessage image = ((ImageMessage) objectInputStream.readObject());
-                    Database.getInstance().writeImage(user.getUsername(), image.getData(), image.getFormat());
+                    udh.writeImage(user.getUsername(), image.getData(), image.getFormat());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -132,6 +138,50 @@ public class ClientHandler implements Runnable {
         sendResponse(signupResponse);
     }
 
+    private void editProfile(EditProfileRequst epr) {
+        EditProfileResponse response = new EditProfileResponse();
+        boolean edit = true;
+        if (epr.getPassword().length() < 8) {
+            response.addResponse("wrong_password_format");
+            edit = false;
+        }
+        if (!epr.getBirthDate().matches(BIRTHDATE_FORMAT_REGEX)) {
+            response.addResponse("wrong_date_format");
+            edit = false;
+        }
+        if (edit) {
+            response.addResponse("success");
+            user.setFirstName(epr.getFirstName());
+            user.setLastName(epr.getLastName());
+            user.setBirthDate(epr.getBirthDate());
+            user.setPassword(epr.getPassword());
+            user.setGender(epr.getGender());
+            response.setUser(new User(
+                    user.getUsername(),
+                    user.getPassword(),
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getBirthDate(),
+                    user.getGender()
+            ));
+            Database.getInstance().getLoginData().put(user.getUsername(), user.getPassword());
+            System.out.println("[ action: update info\n" +
+                    "\"" + user.getUsername() + "\" updated their info\n" +
+                    "time: " + LocalDateTime.now() + " ]"
+            );
+        }
+        sendResponse(response);
+    }
+
+    private void logout() {
+        System.out.println("[ action: logout\n" +
+                "\"" + user.getUsername() + "\" logged out\n" +
+                "time: " + LocalDateTime.now() + " ]"
+        );
+        user = null;
+        userDataHandler = null;
+    }
+
     private void sendResponse(ServerMessage message) {
         try {
             objectOutputStream.writeObject(message);
@@ -141,4 +191,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void printServerMessage() {
+
+    }
 }

@@ -25,17 +25,6 @@ public class Database implements Serializable {
         }
     }
 
-    public void writeImage(String username, byte[] data, String format) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        byteArrayOutputStream.writeBytes(data);
-        try (FileOutputStream fileOutputStream = new FileOutputStream("src/DataBase/UserDirectories/" + username + "/image." + format)) {
-            byteArrayOutputStream.writeTo(fileOutputStream);
-            byteArrayOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static synchronized void init() {
         try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("src/DataBase/DataBaseInitial.bin"))) {
             database = ((Database) objectInputStream.readObject());
