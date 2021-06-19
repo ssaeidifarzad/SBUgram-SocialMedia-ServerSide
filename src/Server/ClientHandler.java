@@ -1,6 +1,7 @@
 package Server;
 
 import DataBase.Database;
+import DataBase.UserDataHandler;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
 import Model.Messages.ServerMessages.LoginResponse;
@@ -9,16 +10,15 @@ import Model.Messages.ServerMessages.SignupResponse;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Map;
 
 public class ClientHandler implements Runnable {
-    Socket socket;
-    ObjectOutputStream objectOutputStream;
-    ObjectInputStream objectInputStream;
-    User user;
+    private final Socket socket;
+    private ObjectOutputStream objectOutputStream;
+    private ObjectInputStream objectInputStream;
+    private User user;
+    private UserDataHandler userDataHandler;
     public static final String BIRTHDATE_FORMAT_REGEX = "(19|20)[0-9]{2}/(1[0-2]|[1-9])/([1-9]|[1-2][0-9]|3[0-1])";
 
     public ClientHandler(Socket socket) {
@@ -44,6 +44,9 @@ public class ClientHandler implements Runnable {
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
+            }
+            if (userDataHandler != null) {
+                userDataHandler.updateData();
             }
         }
         if (user != null) {
@@ -72,6 +75,7 @@ public class ClientHandler implements Runnable {
             if (ld.get(lr.getUsername()).equals(lr.getPassword())) {
                 loginResponse.addResponse("success");
                 user = Database.getInstance().getUser(lr.getUsername());
+                userDataHandler = new UserDataHandler(user);
                 loginResponse.setUser(user);
                 System.out.println("[ action: login\n" +
                         "\"" + user.getUsername() + "\" login\n" +
@@ -83,18 +87,13 @@ public class ClientHandler implements Runnable {
         } else {
             loginResponse.addResponse("no_username");
         }
-        try {
-            sendResponse(loginResponse);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        sendResponse(loginResponse);
     }
 
     private void signup(SignupRequest signupRequest) {
         SignupResponse signupResponse = new SignupResponse();
         boolean signup = true;
-        Map<String, String> ld = Database.getInstance().getLoginData();
-        if (ld.containsKey(signupRequest.getUsername())) {
+        if (Database.getInstance().getLoginData().containsKey(signupRequest.getUsername())) {
             signupResponse.addResponse("unavailable_username");
             signup = false;
         }
@@ -104,9 +103,9 @@ public class ClientHandler implements Runnable {
         }
         if (!signupRequest.getBirthDate().matches(BIRTHDATE_FORMAT_REGEX)) {
             signupResponse.addResponse("wrong_date_format");
+            signup = false;
         }
         if (signup) {
-            ld.put(signupRequest.getUsername(), signupRequest.getPassword());
             User user = new User(
                     signupRequest.getUsername(),
                     signupRequest.getPassword(),
@@ -115,12 +114,11 @@ public class ClientHandler implements Runnable {
                     signupRequest.getBirthDate(),
                     signupRequest.getGender()
             );
-            Database.getInstance().addUser(user.getUsername(), user);
-            Database.createUserDirectory(user);
+            Database.getInstance().addUser(user);
             if (signupRequest.isHasPhoto()) {
                 try {
                     ImageMessage image = ((ImageMessage) objectInputStream.readObject());
-                    Database.writeImage(user.getUsername(),image.getData(),image.getFormat());
+                    Database.getInstance().writeImage(user.getUsername(), image.getData(), image.getFormat());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -131,17 +129,16 @@ public class ClientHandler implements Runnable {
                     "time: " + LocalDateTime.now() + " ]"
             );
         }
+        sendResponse(signupResponse);
+    }
+
+    private void sendResponse(ServerMessage message) {
         try {
-            sendResponse(signupResponse);
+            objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-    }
-
-    private void sendResponse(ServerMessage message) throws IOException {
-        objectOutputStream.writeObject(message);
-        objectOutputStream.flush();
     }
 
 }
