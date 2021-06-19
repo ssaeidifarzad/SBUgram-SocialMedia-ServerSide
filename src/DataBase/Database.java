@@ -2,7 +2,12 @@ package DataBase;
 
 import Model.DataTypes.User.User;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Database implements Serializable {
@@ -12,6 +17,24 @@ public class Database implements Serializable {
 
     private Database() {
 
+    }
+
+    public static void createUserDirectory(User user) {
+        try {
+            Files.createDirectory(Paths.get("src/DataBase/UserDirectories/" + user.getUsername()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void writeImage(String username, byte[] data, String format) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byteArrayOutputStream.writeBytes(data);
+        try (FileOutputStream fileOutputStream = new FileOutputStream("src/DataBase/UserDirectories/" + username + "/image." + format)) {
+            byteArrayOutputStream.writeTo(fileOutputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static synchronized void init() {

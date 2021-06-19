@@ -10,14 +10,16 @@ public class SignupRequest implements ClientMessage {
     private String lastName;
     private String birthDate;
     private Gender gender;
+    private boolean hasPhoto;
 
-    public SignupRequest(String username, String password, String firstName, String lastName, String birthDate, Gender gender) {
+    public SignupRequest(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.gender = gender;
+        this.hasPhoto = hasPhoto;
     }
 
     public String getUsername() {
@@ -43,4 +45,13 @@ public class SignupRequest implements ClientMessage {
     public Gender getGender() {
         return gender;
     }
+
+    public boolean isHasPhoto() {
+        return hasPhoto;
+    }
+
+    public void setHasPhoto(boolean hasPhoto) {
+        this.hasPhoto = hasPhoto;
+    }
+
 }

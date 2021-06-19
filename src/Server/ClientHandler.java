@@ -2,16 +2,16 @@ package Server;
 
 import DataBase.Database;
 import Model.DataTypes.User.User;
-import Model.Messages.ClientMessages.ExitMessage;
-import Model.Messages.ClientMessages.LoginRequest;
-import Model.Messages.ClientMessages.ClientMessage;
-import Model.Messages.ClientMessages.SignupRequest;
+import Model.Messages.ClientMessages.*;
 import Model.Messages.ServerMessages.LoginResponse;
+import Model.Messages.ServerMessages.ServerMessage;
 import Model.Messages.ServerMessages.SignupResponse;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Map;
 
 public class ClientHandler implements Runnable {
@@ -20,6 +20,7 @@ public class ClientHandler implements Runnable {
     ObjectInputStream objectInputStream;
     User user;
     public static final String BIRTHDATE_FORMAT_REGEX = "(19|20)[0-9]{2}/(1[0-2]|[1-9])/([1-9]|[1-2][0-9]|3[0-1])";
+
     public ClientHandler(Socket socket) {
         this.socket = socket;
         try {
@@ -51,6 +52,17 @@ public class ClientHandler implements Runnable {
                     "time: " + LocalDateTime.now() + " ]"
             );
         }
+        disconnect();
+    }
+
+    private void disconnect() {
+        try {
+            socket.close();
+            objectInputStream.close();
+            objectInputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void login(LoginRequest lr) {
@@ -72,7 +84,7 @@ public class ClientHandler implements Runnable {
             loginResponse.addResponse("no_username");
         }
         try {
-            objectOutputStream.writeObject(loginResponse);
+            sendResponse(loginResponse);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -90,7 +102,7 @@ public class ClientHandler implements Runnable {
             signupResponse.addResponse("wrong_password_format");
             signup = false;
         }
-        if(!signupRequest.getBirthDate().matches(BIRTHDATE_FORMAT_REGEX)){
+        if (!signupRequest.getBirthDate().matches(BIRTHDATE_FORMAT_REGEX)) {
             signupResponse.addResponse("wrong_date_format");
         }
         if (signup) {
@@ -104,6 +116,15 @@ public class ClientHandler implements Runnable {
                     signupRequest.getGender()
             );
             Database.getInstance().addUser(user.getUsername(), user);
+            Database.createUserDirectory(user);
+            if (signupRequest.isHasPhoto()) {
+                try {
+                    ImageMessage image = ((ImageMessage) objectInputStream.readObject());
+                    Database.writeImage(user.getUsername(),image.getData(),image.getFormat());
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
             signupResponse.addResponse("success");
             System.out.println("[ action: register\n" +
                     "\"" + user.getUsername() + "\" registered\n" +
@@ -111,10 +132,16 @@ public class ClientHandler implements Runnable {
             );
         }
         try {
-            objectOutputStream.writeObject(signupResponse);
+            sendResponse(signupResponse);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
+
+    private void sendResponse(ServerMessage message) throws IOException {
+        objectOutputStream.writeObject(message);
+        objectOutputStream.flush();
+    }
+
 }
