@@ -24,7 +24,7 @@ public class Server {
             try {
                 Socket socket = serverSocket.accept();
                 new Thread(new ClientHandler(socket)).start();
-                if (scanner.next().equals("shutdown"))
+                if (scanner.next().equals("1"))
                     break;
             } catch (IOException e) {
                 System.out.println("Connection failed");

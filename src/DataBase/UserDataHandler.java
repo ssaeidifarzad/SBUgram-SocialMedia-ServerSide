@@ -2,14 +2,14 @@ package DataBase;
 
 import Model.DataTypes.User.User;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 
 public class UserDataHandler {
     private final User user;
     private final String directoryPath;
+    private String photoFormat;
 
     public UserDataHandler(User user) {
         this.user = user;
@@ -30,13 +30,33 @@ public class UserDataHandler {
         try (FileOutputStream fileOutputStream = new FileOutputStream(directoryPath + "/image." + format)) {
             byteArrayOutputStream.writeTo(fileOutputStream);
             byteArrayOutputStream.close();
+            photoFormat = format;
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public byte[] readImage() {
+        byte[] imageData = new byte[0];
+        try {
+            File photo = new File(directoryPath + "/image." + photoFormat);
+            BufferedImage image = ImageIO.read(photo);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ImageIO.write(image, photoFormat, byteArrayOutputStream);
+            imageData = byteArrayOutputStream.toByteArray();
+            byteArrayOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return imageData;
+    }
+
+    public String getPhotoFormat() {
+        return photoFormat;
+    }
+
     @Override
-    public void finalize(){
+    public void finalize() {
         updateData();
     }
 }

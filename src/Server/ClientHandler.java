@@ -4,6 +4,7 @@ import DataBase.Database;
 import DataBase.UserDataHandler;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
+import Model.Messages.ImageMessage;
 import Model.Messages.ServerMessages.EditProfileResponse;
 import Model.Messages.ServerMessages.LoginResponse;
 import Model.Messages.ServerMessages.ServerMessage;
@@ -46,6 +47,8 @@ public class ClientHandler implements Runnable {
                     editProfile(((EditProfileRequst) message));
                 } else if (message instanceof LogoutRequest) {
                     logout();
+                } else if (message instanceof ImageRequest) {
+                    sendImage();
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -82,10 +85,7 @@ public class ClientHandler implements Runnable {
                 user = Database.getInstance().getUser(lr.getUsername());
                 userDataHandler = new UserDataHandler(user);
                 loginResponse.setUser(user);
-                System.out.println("[ action: login\n" +
-                        "\"" + user.getUsername() + "\" login\n" +
-                        "time: " + LocalDateTime.now() + " ]"
-                );
+                printServerMessage("login");
             } else {
                 loginResponse.addResponse("wrong_password");
             }
@@ -117,7 +117,8 @@ public class ClientHandler implements Runnable {
                     signupRequest.getFirstName(),
                     signupRequest.getLastName(),
                     signupRequest.getBirthDate(),
-                    signupRequest.getGender()
+                    signupRequest.getGender(),
+                    signupRequest.isHasPhoto()
             );
             Database.getInstance().addUser(user);
             UserDataHandler udh = new UserDataHandler(user);
@@ -130,10 +131,7 @@ public class ClientHandler implements Runnable {
                 }
             }
             signupResponse.addResponse("success");
-            System.out.println("[ action: register\n" +
-                    "\"" + user.getUsername() + "\" registered\n" +
-                    "time: " + LocalDateTime.now() + " ]"
-            );
+            printServerMessage("register");
         }
         sendResponse(signupResponse);
     }
@@ -162,24 +160,36 @@ public class ClientHandler implements Runnable {
                     user.getFirstName(),
                     user.getLastName(),
                     user.getBirthDate(),
-                    user.getGender()
+                    user.getGender(),
+                    epr.isHasPhoto()
             ));
             Database.getInstance().getLoginData().put(user.getUsername(), user.getPassword());
-            System.out.println("[ action: update info\n" +
-                    "\"" + user.getUsername() + "\" updated their info\n" +
-                    "time: " + LocalDateTime.now() + " ]"
-            );
+            if (epr.isHasPhoto()) {
+                try {
+                    ImageMessage image = ((ImageMessage) objectInputStream.readObject());
+                    userDataHandler.writeImage(user.getUsername(), image.getData(), image.getFormat());
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            printServerMessage("update info");
         }
         sendResponse(response);
     }
 
     private void logout() {
-        System.out.println("[ action: logout\n" +
-                "\"" + user.getUsername() + "\" logged out\n" +
-                "time: " + LocalDateTime.now() + " ]"
-        );
+        printServerMessage("logout");
         user = null;
         userDataHandler = null;
+    }
+
+    private void sendImage() {
+        try {
+            objectOutputStream.writeObject(new ImageMessage(userDataHandler.readImage(),
+                    userDataHandler.getPhotoFormat()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void sendResponse(ServerMessage message) {
@@ -191,7 +201,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void printServerMessage() {
-
+    private void printServerMessage(String message) {
+        String temp = "[ action: " + message + "\n" +
+                "\"" + user.getUsername() + "\" " + message + "\n" +
+                "time: " + LocalDateTime.now() + " ]";
+        System.out.println(temp);
     }
 }

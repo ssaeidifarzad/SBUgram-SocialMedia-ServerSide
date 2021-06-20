@@ -1,6 +1,8 @@
-package Model.Messages.ClientMessages;
+package Model.Messages;
 
-public class ImageMessage implements ClientMessage {
+import java.io.Serializable;
+
+public class ImageMessage implements Serializable {
     public static final long serialVersionUID = 1237896L;
     private byte[] data;
     private String format;
