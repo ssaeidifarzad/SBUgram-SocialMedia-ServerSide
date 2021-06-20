@@ -11,6 +11,11 @@ public class Database implements Serializable {
     public static final long serialVersionUID = 23453156454L;
     private static Database database;
     private final ConcurrentHashMap<String, String> loginData = new ConcurrentHashMap<>();
+
+    public ConcurrentHashMap<String, User> getUsers() {
+        return users;
+    }
+
     private final ConcurrentHashMap<String, User> users = new ConcurrentHashMap<>();
 
     private Database() {

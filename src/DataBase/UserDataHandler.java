@@ -14,6 +14,7 @@ public class UserDataHandler {
     public UserDataHandler(User user) {
         this.user = user;
         directoryPath = "src/DataBase/UserDirectories/" + user.getUsername();
+        photoFormat = user.getPhotoFormat();
     }
 
     public void updateData() {
@@ -24,13 +25,14 @@ public class UserDataHandler {
         }
     }
 
-    public void writeImage(String username, byte[] data, String format) {
+    public void writeImage( byte[] data, String format) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byteArrayOutputStream.writeBytes(data);
         try (FileOutputStream fileOutputStream = new FileOutputStream(directoryPath + "/image." + format)) {
             byteArrayOutputStream.writeTo(fileOutputStream);
             byteArrayOutputStream.close();
             photoFormat = format;
+            user.setPhotoFormat(format);
         } catch (IOException e) {
             e.printStackTrace();
         }

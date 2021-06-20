@@ -43,8 +43,8 @@ public class ClientHandler implements Runnable {
                     login((LoginRequest) message);
                 } else if (message instanceof SignupRequest) {
                     signup(((SignupRequest) message));
-                } else if ((message instanceof EditProfileRequst)) {
-                    editProfile(((EditProfileRequst) message));
+                } else if ((message instanceof EditProfileRequest)) {
+                    editProfile(((EditProfileRequest) message));
                 } else if (message instanceof LogoutRequest) {
                     logout();
                 } else if (message instanceof ImageRequest) {
@@ -60,7 +60,7 @@ public class ClientHandler implements Runnable {
         if (user != null) {
             System.out.println("[ action: quit\n" +
                     "\"" + user.getUsername() + "\" quited\n" +
-                    "time: " + LocalDateTime.now() + " ]"
+                    "time: " + LocalDateTime.now() + " ]\n"
             );
         }
         disconnect();
@@ -84,7 +84,19 @@ public class ClientHandler implements Runnable {
                 loginResponse.addResponse("success");
                 user = Database.getInstance().getUser(lr.getUsername());
                 userDataHandler = new UserDataHandler(user);
-                loginResponse.setUser(user);
+                User temp = new User(
+                        user.getUsername(),
+                        user.getPassword(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getBirthDate(),
+                        user.getGender(),
+                        user.hasPhoto()
+                );
+                if (user.hasPhoto()) {
+                    temp.setPhotoFormat(user.getPhotoFormat());
+                }
+                loginResponse.setUser(temp);
                 printServerMessage("login");
             } else {
                 loginResponse.addResponse("wrong_password");
@@ -125,7 +137,7 @@ public class ClientHandler implements Runnable {
             if (signupRequest.isHasPhoto()) {
                 try {
                     ImageMessage image = ((ImageMessage) objectInputStream.readObject());
-                    udh.writeImage(user.getUsername(), image.getData(), image.getFormat());
+                    udh.writeImage(image.getData(), image.getFormat());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -136,24 +148,25 @@ public class ClientHandler implements Runnable {
         sendResponse(signupResponse);
     }
 
-    private void editProfile(EditProfileRequst epr) {
+    private void editProfile(EditProfileRequest editProfileRequest) {
         EditProfileResponse response = new EditProfileResponse();
         boolean edit = true;
-        if (epr.getPassword().length() < 8) {
+        if (editProfileRequest.getPassword().length() < 8) {
             response.addResponse("wrong_password_format");
             edit = false;
         }
-        if (!epr.getBirthDate().matches(BIRTHDATE_FORMAT_REGEX)) {
+        if (!editProfileRequest.getBirthDate().matches(BIRTHDATE_FORMAT_REGEX)) {
             response.addResponse("wrong_date_format");
             edit = false;
         }
         if (edit) {
             response.addResponse("success");
-            user.setFirstName(epr.getFirstName());
-            user.setLastName(epr.getLastName());
-            user.setBirthDate(epr.getBirthDate());
-            user.setPassword(epr.getPassword());
-            user.setGender(epr.getGender());
+            user.setFirstName(editProfileRequest.getFirstName());
+            user.setLastName(editProfileRequest.getLastName());
+            user.setBirthDate(editProfileRequest.getBirthDate());
+            user.setPassword(editProfileRequest.getPassword());
+            user.setGender(editProfileRequest.getGender());
+            user.setHasPhoto(editProfileRequest.isHasPhoto());
             response.setUser(new User(
                     user.getUsername(),
                     user.getPassword(),
@@ -161,13 +174,15 @@ public class ClientHandler implements Runnable {
                     user.getLastName(),
                     user.getBirthDate(),
                     user.getGender(),
-                    epr.isHasPhoto()
+                    user.hasPhoto()
             ));
             Database.getInstance().getLoginData().put(user.getUsername(), user.getPassword());
-            if (epr.isHasPhoto()) {
+            Database.getInstance().getUsers().put(user.getUsername(), user);
+            if (editProfileRequest.isHasPhoto()) {
                 try {
                     ImageMessage image = ((ImageMessage) objectInputStream.readObject());
-                    userDataHandler.writeImage(user.getUsername(), image.getData(), image.getFormat());
+                    userDataHandler.writeImage(image.getData(), image.getFormat());
+                    user.setPhotoFormat(image.getFormat());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -204,7 +219,7 @@ public class ClientHandler implements Runnable {
     private void printServerMessage(String message) {
         String temp = "[ action: " + message + "\n" +
                 "\"" + user.getUsername() + "\" " + message + "\n" +
-                "time: " + LocalDateTime.now() + " ]";
+                "time: " + LocalDateTime.now() + " ]\n";
         System.out.println(temp);
     }
 }
