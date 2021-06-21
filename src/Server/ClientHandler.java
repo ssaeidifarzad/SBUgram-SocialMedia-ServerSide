@@ -2,6 +2,7 @@ package Server;
 
 import DataBase.Database;
 import DataBase.UserDataHandler;
+import Model.DataTypes.User.SafeUserData;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
 import Model.Messages.ImageMessage;
@@ -51,6 +52,8 @@ public class ClientHandler implements Runnable {
                     sendImage();
                 } else if (message instanceof PublishRequest) {
                     publish(((PublishRequest) message));
+                } else if (message instanceof SearchRequest) {
+                    search(((SearchRequest) message));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -190,10 +193,34 @@ public class ClientHandler implements Runnable {
         userDataHandler = null;
     }
 
+    private void search(SearchRequest searchRequest) {
+        SearchResponse searchResponse = new SearchResponse();
+        if (Database.getInstance().getUsers().containsKey(searchRequest.getSearchedUsername())) {
+            searchResponse.addResponse("success");
+            searchResponse.setSafeUserData(createSafeUser(Database.getInstance().getUser(searchRequest.getSearchedUsername())));
+            sendResponse(searchResponse);
+            if (searchResponse.getSafeUserData().isHasPhoto()) {
+                sendOtherProfileImage(Database.getInstance().getUser(searchRequest.getSearchedUsername()));
+            }
+        } else {
+            searchResponse.addResponse("no_user");
+            sendResponse(searchResponse);
+        }
+    }
+
     private void sendImage() {
         try {
             objectOutputStream.writeObject(new ImageMessage(userDataHandler.readImage(),
                     userDataHandler.getPhotoFormat()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendOtherProfileImage(User user) {
+        UserDataHandler userDataHandler = new UserDataHandler(user);
+        try {
+            objectOutputStream.writeObject(new ImageMessage(userDataHandler.readImage(), userDataHandler.getPhotoFormat()));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -221,6 +248,20 @@ public class ClientHandler implements Runnable {
                 new ArrayList<>(user.getFollowers()),
                 new ArrayList<>(user.getFollowings())
         );
+    }
+
+    private SafeUserData createSafeUser(User user) {
+        SafeUserData safeUser = new SafeUserData(
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getBirthDate(),
+                user.hasPhoto(),
+                user.getPosts()
+        );
+        if (user.hasPhoto())
+            safeUser.setPhotoFormat(user.getPhotoFormat());
+        return safeUser;
     }
 
     private void printServerMessage(String message) {
