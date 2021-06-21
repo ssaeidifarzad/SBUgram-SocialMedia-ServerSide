@@ -1,6 +1,6 @@
 package Model.DataTypes.User;
 
-import Model.DataTypes.Post.Post;
+import Model.DataTypes.Post.Posts;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,10 +16,16 @@ public class User implements Serializable {
     private boolean hasPhoto;
     private String photoFormat;
 
-    private final ArrayList<Post> posts;
+    private ArrayList<Posts> posts = new ArrayList<>();
+    private ArrayList<User> followers = new ArrayList<>();
+    private ArrayList<User> followings = new ArrayList<>();
 
-    private final ArrayList<User> followers;
-    private final ArrayList<User> followings;
+    public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto, ArrayList<Posts> posts, ArrayList<User> followers, ArrayList<User> followings) {
+        this(username, password, firstName, lastName, birthDate, gender, hasPhoto);
+        this.posts = posts;
+        this.followers = followers;
+        this.followings = followings;
+    }
 
     public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto) {
         this.username = username;
@@ -29,9 +35,6 @@ public class User implements Serializable {
         this.birthDate = birthDate;
         this.gender = gender;
         this.hasPhoto = hasPhoto;
-        posts = new ArrayList<>();
-        followers = new ArrayList<>();
-        followings = new ArrayList<>();
     }
 
     public String getUsername() {
@@ -86,7 +89,7 @@ public class User implements Serializable {
         this.hasPhoto = hasPhoto;
     }
 
-    public void addPost(Post post) {
+    public void addPost(Posts post) {
         posts.add(post);
     }
 
@@ -98,7 +101,7 @@ public class User implements Serializable {
         followings.add(user);
     }
 
-    public ArrayList<Post> getPosts() {
+    public ArrayList<Posts> getPosts() {
         return posts;
     }
 

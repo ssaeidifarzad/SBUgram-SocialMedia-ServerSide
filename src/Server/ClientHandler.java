@@ -5,14 +5,12 @@ import DataBase.UserDataHandler;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
 import Model.Messages.ImageMessage;
-import Model.Messages.ServerMessages.EditProfileResponse;
-import Model.Messages.ServerMessages.LoginResponse;
-import Model.Messages.ServerMessages.ServerMessage;
-import Model.Messages.ServerMessages.SignupResponse;
+import Model.Messages.ServerMessages.*;
 
 import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class ClientHandler implements Runnable {
@@ -21,6 +19,8 @@ public class ClientHandler implements Runnable {
     private ObjectInputStream objectInputStream;
     private User user;
     private UserDataHandler userDataHandler;
+
+    //make it method
     public static final String BIRTHDATE_FORMAT_REGEX = "(19|20)[0-9]{2}/(1[0-2]|[1-9])/([1-9]|[1-2][0-9]|3[0-1])";
 
     public ClientHandler(Socket socket) {
@@ -49,6 +49,8 @@ public class ClientHandler implements Runnable {
                     logout();
                 } else if (message instanceof ImageRequest) {
                     sendImage();
+                } else if (message instanceof PublishRequest) {
+                    publish(((PublishRequest) message));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -58,10 +60,7 @@ public class ClientHandler implements Runnable {
             }
         }
         if (user != null) {
-            System.out.println("[ action: quit\n" +
-                    "\"" + user.getUsername() + "\" quited\n" +
-                    "time: " + LocalDateTime.now() + " ]\n"
-            );
+            printServerMessage("quit");
         }
         disconnect();
     }
@@ -84,15 +83,7 @@ public class ClientHandler implements Runnable {
                 loginResponse.addResponse("success");
                 user = Database.getInstance().getUser(lr.getUsername());
                 userDataHandler = new UserDataHandler(user);
-                User temp = new User(
-                        user.getUsername(),
-                        user.getPassword(),
-                        user.getFirstName(),
-                        user.getLastName(),
-                        user.getBirthDate(),
-                        user.getGender(),
-                        user.hasPhoto()
-                );
+                User temp = createNewUser();
                 if (user.hasPhoto()) {
                     temp.setPhotoFormat(user.getPhotoFormat());
                 }
@@ -167,15 +158,7 @@ public class ClientHandler implements Runnable {
             user.setPassword(editProfileRequest.getPassword());
             user.setGender(editProfileRequest.getGender());
             user.setHasPhoto(editProfileRequest.isHasPhoto());
-            response.setUser(new User(
-                    user.getUsername(),
-                    user.getPassword(),
-                    user.getFirstName(),
-                    user.getLastName(),
-                    user.getBirthDate(),
-                    user.getGender(),
-                    user.hasPhoto()
-            ));
+            response.setUser(createNewUser());
             Database.getInstance().getLoginData().put(user.getUsername(), user.getPassword());
             Database.getInstance().getUsers().put(user.getUsername(), user);
             if (editProfileRequest.isHasPhoto()) {
@@ -190,6 +173,15 @@ public class ClientHandler implements Runnable {
             printServerMessage("update info");
         }
         sendResponse(response);
+    }
+
+    private void publish(PublishRequest publishRequest) {
+        PublishResponse publishResponse = new PublishResponse();
+        user.addPost(publishRequest.getPost());
+        publishResponse.addResponse("success");
+        publishResponse.setUser(createNewUser());
+        printServerMessage("publish");
+        sendResponse(publishResponse);
     }
 
     private void logout() {
@@ -214,6 +206,21 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private User createNewUser() {
+        return new User(
+                user.getUsername(),
+                user.getPassword(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getBirthDate(),
+                user.getGender(),
+                user.hasPhoto(),
+                new ArrayList<>(user.getPosts()),
+                new ArrayList<>(user.getFollowers()),
+                new ArrayList<>(user.getFollowings())
+        );
     }
 
     private void printServerMessage(String message) {
