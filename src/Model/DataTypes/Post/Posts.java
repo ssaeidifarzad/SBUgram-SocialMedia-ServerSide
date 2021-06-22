@@ -3,8 +3,7 @@ package Model.DataTypes.Post;
 import Model.DataTypes.User.User;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Vector;
 
 public interface Posts extends Serializable {
     long serialVersionUID = 40000000L;
@@ -13,11 +12,23 @@ public interface Posts extends Serializable {
 
     String getDescription();
 
-    HashSet<User> getReposts();
+    int getReposts();
 
-    HashSet<User> getLikes();
+    int getLikes();
 
-    ArrayList<Comment> getComments();
+    Vector<Comment> getComments();
 
     String getTitle();
+
+    String getDateAndTime();
+
+    long getPublishTime();
+
+    void like(String username);
+
+    void repost(String username);
+
+    void setIndex(int index);
+
+    int getIndex();
 }

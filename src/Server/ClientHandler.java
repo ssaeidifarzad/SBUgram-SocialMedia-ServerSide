@@ -2,6 +2,8 @@ package Server;
 
 import DataBase.Database;
 import DataBase.UserDataHandler;
+import Model.DataTypes.Post.Posts;
+import Model.DataTypes.Post.RepostedPosts;
 import Model.DataTypes.User.SafeUserData;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
@@ -11,8 +13,9 @@ import Model.Messages.ServerMessages.*;
 import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Map;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
@@ -54,6 +57,14 @@ public class ClientHandler implements Runnable {
                     publish(((PublishRequest) message));
                 } else if (message instanceof SearchRequest) {
                     search(((SearchRequest) message));
+                } else if (message instanceof FollowRequest) {
+                    follow(((FollowRequest) message));
+                } else if (message instanceof UnfollowRequest) {
+                    unfollow(((UnfollowRequest) message));
+                } else if (message instanceof TimelinePostsRequest) {
+                    sendPosts();
+                } else if (message instanceof RepostRequest) {
+                    repost(((RepostRequest) message));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -137,7 +148,7 @@ public class ClientHandler implements Runnable {
                 }
             }
             signupResponse.addResponse("success");
-            printServerMessage("register");
+//            printServerMessage("register");
         }
         sendResponse(signupResponse);
     }
@@ -199,13 +210,40 @@ public class ClientHandler implements Runnable {
             searchResponse.addResponse("success");
             searchResponse.setSafeUserData(createSafeUser(Database.getInstance().getUser(searchRequest.getSearchedUsername())));
             sendResponse(searchResponse);
-            if (searchResponse.getSafeUserData().isHasPhoto()) {
+            if (searchResponse.getSafeUserData().hasPhoto()) {
                 sendOtherProfileImage(Database.getInstance().getUser(searchRequest.getSearchedUsername()));
             }
         } else {
             searchResponse.addResponse("no_user");
             sendResponse(searchResponse);
         }
+    }
+
+    private void follow(FollowRequest followRequest) {
+        user.addFollowing(Database.getInstance().getUser(followRequest.getSafeUserData().getUsername()));
+        Database.getInstance().getUser(followRequest.getSafeUserData().getUsername()).addFollower(user);
+        sendResponse(new FollowResponse(createNewUser()));
+    }
+
+    private void unfollow(UnfollowRequest unfollowRequest) {
+        user.getFollowings().remove(unfollowRequest.getSafeUserData().getUsername());
+        Database.getInstance().getUser(unfollowRequest.getSafeUserData().getUsername())
+                .getFollowers().remove(user.getUsername());
+        sendResponse(new UnfollowResponse(createNewUser()));
+    }
+
+    private void sendPosts() {
+        Vector<Posts> posts = new Vector<>();
+        for (Map.Entry<String, User> entry : user.getFollowings().entrySet()) {
+            posts.addAll(entry.getValue().getPosts().values());
+        }
+        sendResponse(new TimelinePostsResponse(posts));
+    }
+
+    private void repost(RepostRequest repostRequest) {
+        user.addPost(new RepostedPosts(repostRequest.getPost(), user.getUsername()));
+        repostRequest.getPost().getOwner().getPosts().get(repostRequest.getPost().getIndex()).repost(user.getUsername());
+        sendResponse(new RepostResponse(createNewUser()));
     }
 
     private void sendImage() {
@@ -244,9 +282,9 @@ public class ClientHandler implements Runnable {
                 user.getBirthDate(),
                 user.getGender(),
                 user.hasPhoto(),
-                new ArrayList<>(user.getPosts()),
-                new ArrayList<>(user.getFollowers()),
-                new ArrayList<>(user.getFollowings())
+                new ConcurrentHashMap<>(user.getPosts()),
+                new ConcurrentHashMap<>(user.getFollowers()),
+                new ConcurrentHashMap<>(user.getFollowings())
         );
     }
 
@@ -257,8 +295,9 @@ public class ClientHandler implements Runnable {
                 user.getLastName(),
                 user.getBirthDate(),
                 user.hasPhoto(),
-                user.getPosts()
-        );
+                user.getPosts(),
+                user.getFollowers().size(),
+                user.getFollowings().size());
         if (user.hasPhoto())
             safeUser.setPhotoFormat(user.getPhotoFormat());
         return safeUser;

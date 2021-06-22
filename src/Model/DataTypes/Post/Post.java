@@ -2,20 +2,21 @@ package Model.DataTypes.Post;
 
 import Model.DataTypes.User.User;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Vector;
 
 public class Post implements Posts {
     public static final long serialVersionUID = 300000L;
-
     private final User owner;
     private final String title;
     private final String description;
-    private final HashSet<User> likes = new HashSet<>();
-    private final HashSet<User> reposts = new HashSet<>();
-    private final ArrayList<Comment> comments = new ArrayList<>();
+    private int likes;
+    private int reposts;
+    private final Vector<Comment> comments = new Vector<>();
+    private final Vector<String> likedUsernames = new Vector<>();
+    private final Vector<String> repostedUsernames = new Vector<>();
     private final String dateAndTime;
     private final long publishTime;
+    private int index;
 
     public Post(User owner, String title, String description, String dateAndTime, long publishTime) {
         this.owner = owner;
@@ -36,17 +37,18 @@ public class Post implements Posts {
     }
 
     @Override
-    public HashSet<User> getReposts() {
+    public int getReposts() {
         return reposts;
     }
 
     @Override
-    public HashSet<User> getLikes() {
+    public int getLikes() {
         return likes;
     }
 
+
     @Override
-    public ArrayList<Comment> getComments() {
+    public Vector<Comment> getComments() {
         return comments;
     }
 
@@ -55,11 +57,39 @@ public class Post implements Posts {
         return title;
     }
 
+    @Override
     public String getDateAndTime() {
         return dateAndTime;
     }
 
+    @Override
     public long getPublishTime() {
         return publishTime;
+    }
+
+    @Override
+    public void like(String username) {
+        if (!likedUsernames.contains(username)) {
+            likedUsernames.add(username);
+            likes++;
+        }
+    }
+
+    @Override
+    public void repost(String username) {
+        if (!repostedUsernames.contains(username)) {
+            repostedUsernames.add(username);
+            reposts++;
+        }
+    }
+
+    @Override
+    public int getIndex() {
+        return index;
+    }
+
+    @Override
+    public void setIndex(int index) {
+        this.index = index;
     }
 }
