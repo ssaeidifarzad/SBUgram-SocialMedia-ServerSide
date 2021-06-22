@@ -2,6 +2,7 @@ package Server;
 
 import DataBase.Database;
 import DataBase.UserDataHandler;
+import Model.DataTypes.Post.Post;
 import Model.DataTypes.Post.Posts;
 import Model.DataTypes.Post.RepostedPosts;
 import Model.DataTypes.User.SafeUserData;
@@ -65,6 +66,8 @@ public class ClientHandler implements Runnable {
                     sendPosts();
                 } else if (message instanceof RepostRequest) {
                     repost(((RepostRequest) message));
+                } else if (message instanceof LikeRequest) {
+                    like(((LikeRequest) message));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -191,7 +194,9 @@ public class ClientHandler implements Runnable {
 
     private void publish(PublishRequest publishRequest) {
         PublishResponse publishResponse = new PublishResponse();
-        user.addPost(publishRequest.getPost());
+        Posts p = publishRequest.getPost();
+        ((Post) p).setOwner(user);
+        user.addPost(p);
         publishResponse.addResponse("success");
         publishResponse.setUser(createNewUser());
         printServerMessage("publish");
@@ -242,8 +247,15 @@ public class ClientHandler implements Runnable {
 
     private void repost(RepostRequest repostRequest) {
         user.addPost(new RepostedPosts(repostRequest.getPost(), user.getUsername()));
-        repostRequest.getPost().getOwner().getPosts().get(repostRequest.getPost().getIndex()).repost(user.getUsername());
+        User u = Database.getInstance().getUser(repostRequest.getPost().getOwner().getUsername());
+        u.getPosts().get(repostRequest.getPost().getIndex()).repost(user.getUsername());
         sendResponse(new RepostResponse(createNewUser()));
+    }
+
+    private void like(LikeRequest likeRequest) {
+        User user = Database.getInstance().getUser(likeRequest.getPost().getOwner().getUsername());
+        user.getPosts().get(likeRequest.getPost().getIndex()).like(this.user.getUsername());
+        sendResponse(new LikeResponse(createNewUser()));
     }
 
     private void sendImage() {
@@ -284,7 +296,8 @@ public class ClientHandler implements Runnable {
                 user.hasPhoto(),
                 new ConcurrentHashMap<>(user.getPosts()),
                 new ConcurrentHashMap<>(user.getFollowers()),
-                new ConcurrentHashMap<>(user.getFollowings())
+                new ConcurrentHashMap<>(user.getFollowings()),
+                user.getLastPostIndex()
         );
     }
 

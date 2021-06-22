@@ -6,7 +6,7 @@ import java.util.Vector;
 
 public class Post implements Posts {
     public static final long serialVersionUID = 300000L;
-    private final User owner;
+    private User owner;
     private final String title;
     private final String description;
     private int likes;
@@ -18,12 +18,15 @@ public class Post implements Posts {
     private final long publishTime;
     private int index;
 
-    public Post(User owner, String title, String description, String dateAndTime, long publishTime) {
-        this.owner = owner;
+    public Post(String title, String description, String dateAndTime, long publishTime) {
         this.title = title;
         this.description = description;
         this.dateAndTime = dateAndTime;
         this.publishTime = publishTime;
+    }
+
+    public void setOwner(User user) {
+        this.owner = user;
     }
 
     @Override

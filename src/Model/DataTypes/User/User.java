@@ -1,6 +1,5 @@
 package Model.DataTypes.User;
 
-import Model.DataTypes.Post.Post;
 import Model.DataTypes.Post.Posts;
 
 import java.io.Serializable;
@@ -22,11 +21,13 @@ public class User implements Serializable {
     private Map<String, User> followers = new ConcurrentHashMap<>();
     private Map<String, User> followings = new ConcurrentHashMap<>();
 
-    public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto, Map<Integer, Posts> posts, Map<String, User> followers, Map<String, User> followings) {
+    public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto, Map<Integer, Posts> posts,
+                Map<String, User> followers, Map<String, User> followings, int lastPostIndex) {
         this(username, password, firstName, lastName, birthDate, gender, hasPhoto);
         this.posts = posts;
         this.followers = followers;
         this.followings = followings;
+        this.lastPostIndex = lastPostIndex;
     }
 
     public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto) {
@@ -92,12 +93,9 @@ public class User implements Serializable {
     }
 
     public void addPost(Posts post) {
-        if (post instanceof Post) {
-            ((Post) post).setIndex(++lastPostIndex);
-        }else {
-
-        }
-        posts.put(++lastPostIndex, post);
+        post.setIndex(lastPostIndex);
+        posts.put(lastPostIndex, post);
+        lastPostIndex++;
     }
 
     public void addFollower(User user) {
@@ -127,4 +125,11 @@ public class User implements Serializable {
     public void setPhotoFormat(String photoFormat) {
         this.photoFormat = photoFormat;
     }
+
+
+    public int getLastPostIndex() {
+        return lastPostIndex;
+    }
+
+
 }
