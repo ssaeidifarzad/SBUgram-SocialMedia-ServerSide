@@ -4,6 +4,7 @@ import Model.DataTypes.Post.Posts;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class User implements Serializable {
@@ -131,5 +132,16 @@ public class User implements Serializable {
         return lastPostIndex;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return hasPhoto == user.hasPhoto && getLastPostIndex() == user.getLastPostIndex() && getUsername().equals(user.getUsername()) && getPassword().equals(user.getPassword()) && Objects.equals(getFirstName(), user.getFirstName()) && Objects.equals(getLastName(), user.getLastName()) && Objects.equals(getBirthDate(), user.getBirthDate()) && getGender() == user.getGender() && Objects.equals(getPhotoFormat(), user.getPhotoFormat());
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername(), getPassword(), getFirstName(), getLastName(), getBirthDate(), getGender(), hasPhoto, getPhotoFormat(), getLastPostIndex());
+    }
 }

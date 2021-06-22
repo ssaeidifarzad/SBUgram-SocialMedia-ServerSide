@@ -2,11 +2,13 @@ package Model.DataTypes.Post;
 
 import Model.DataTypes.User.User;
 
+import java.util.Objects;
 import java.util.Vector;
 
 public class Post implements Posts {
     public static final long serialVersionUID = 300000L;
     private User owner;
+    private String ownerUsername;
     private final String title;
     private final String description;
     private int likes;
@@ -14,6 +16,7 @@ public class Post implements Posts {
     private final Vector<Comment> comments = new Vector<>();
     private final Vector<String> likedUsernames = new Vector<>();
     private final Vector<String> repostedUsernames = new Vector<>();
+    private final Vector<RepostedPosts> repostedPosts = new Vector<>();
     private final String dateAndTime;
     private final long publishTime;
     private int index;
@@ -27,6 +30,8 @@ public class Post implements Posts {
 
     public void setOwner(User user) {
         this.owner = user;
+        ownerUsername = user.getUsername();
+        update();
     }
 
     @Override
@@ -76,14 +81,17 @@ public class Post implements Posts {
             likedUsernames.add(username);
             likes++;
         }
+        update();
     }
 
     @Override
-    public void repost(String username) {
+    public void repost(String username, RepostedPosts p) {
         if (!repostedUsernames.contains(username)) {
             repostedUsernames.add(username);
             reposts++;
+            repostedPosts.add(p);
         }
+        update();
     }
 
     @Override
@@ -93,6 +101,31 @@ public class Post implements Posts {
 
     @Override
     public void setIndex(int index) {
+        update();
         this.index = index;
+    }
+
+    private void update() {
+        for (RepostedPosts post : repostedPosts) {
+            post.setPost(this);
+        }
+    }
+
+    @Override
+    public String getOwnerUsername() {
+        return ownerUsername;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Post)) return false;
+        Post post = (Post) o;
+        return getLikes() == post.getLikes() && getReposts() == post.getReposts() && getPublishTime() == post.getPublishTime() && ownerUsername.equals(post.ownerUsername) && Objects.equals(getTitle(), post.getTitle()) && Objects.equals(getDescription(), post.getDescription()) && getDateAndTime().equals(post.getDateAndTime());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerUsername, getTitle(), getDescription(), getLikes(), getReposts(), getDateAndTime(), getPublishTime());
     }
 }

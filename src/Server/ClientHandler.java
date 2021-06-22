@@ -68,6 +68,12 @@ public class ClientHandler implements Runnable {
                     repost(((RepostRequest) message));
                 } else if (message instanceof LikeRequest) {
                     like(((LikeRequest) message));
+                } else if (message instanceof UpdatedUserRequest) {
+                    sendResponse(new UpdatedUserResponse(createNewUser()));
+                } else if (message instanceof UpdatedSafeUserRequest) {
+                    sendResponse(new UpdatedSafeUserResponse(createSafeUser(
+                            Database.getInstance().getUser(((UpdatedSafeUserRequest) message).getUsername())
+                    )));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -228,6 +234,7 @@ public class ClientHandler implements Runnable {
         user.addFollowing(Database.getInstance().getUser(followRequest.getSafeUserData().getUsername()));
         Database.getInstance().getUser(followRequest.getSafeUserData().getUsername()).addFollower(user);
         sendResponse(new FollowResponse(createNewUser()));
+        printServerMessage("follow");
     }
 
     private void unfollow(UnfollowRequest unfollowRequest) {
@@ -235,6 +242,7 @@ public class ClientHandler implements Runnable {
         Database.getInstance().getUser(unfollowRequest.getSafeUserData().getUsername())
                 .getFollowers().remove(user.getUsername());
         sendResponse(new UnfollowResponse(createNewUser()));
+        printServerMessage("unfollow");
     }
 
     private void sendPosts() {
@@ -246,16 +254,19 @@ public class ClientHandler implements Runnable {
     }
 
     private void repost(RepostRequest repostRequest) {
-        user.addPost(new RepostedPosts(repostRequest.getPost(), user.getUsername()));
         User u = Database.getInstance().getUser(repostRequest.getPost().getOwner().getUsername());
-        u.getPosts().get(repostRequest.getPost().getIndex()).repost(user.getUsername());
+        RepostedPosts p = new RepostedPosts(u.getPosts().get(repostRequest.getPost().getIndex()), user.getUsername());
+        user.addPost(p);
+        u.getPosts().get(repostRequest.getPost().getIndex()).repost(user.getUsername(), p);
         sendResponse(new RepostResponse(createNewUser()));
+        printServerMessage("repost");
     }
 
     private void like(LikeRequest likeRequest) {
-        User user = Database.getInstance().getUser(likeRequest.getPost().getOwner().getUsername());
-        user.getPosts().get(likeRequest.getPost().getIndex()).like(this.user.getUsername());
+        User u = Database.getInstance().getUser(likeRequest.getPost().getOwner().getUsername());
+        u.getPosts().get(likeRequest.getPost().getIndex()).like(this.user.getUsername());
         sendResponse(new LikeResponse(createNewUser()));
+        printServerMessage("like");
     }
 
     private void sendImage() {

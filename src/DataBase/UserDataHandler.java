@@ -25,7 +25,7 @@ public class UserDataHandler {
         }
     }
 
-    public void writeImage( byte[] data, String format) {
+    public void writeImage(byte[] data, String format) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byteArrayOutputStream.writeBytes(data);
         try (FileOutputStream fileOutputStream = new FileOutputStream(directoryPath + "/image." + format)) {

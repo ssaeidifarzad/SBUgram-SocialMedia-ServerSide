@@ -2,16 +2,19 @@ package Model.DataTypes.Post;
 
 import Model.DataTypes.User.User;
 
+import java.util.Objects;
 import java.util.Vector;
 
 public class RepostedPosts implements Posts {
     public static final long serialVersionUID = 500000000L;
-    private final Posts post;
+    private Posts post;
+    private final String ownerUsername;
     private final String repostUsername;
     private int index;
 
     public RepostedPosts(Posts post, String repostUsername) {
         this.post = post;
+        ownerUsername = post.getOwner().getUsername();
         this.repostUsername = repostUsername;
     }
 
@@ -62,8 +65,8 @@ public class RepostedPosts implements Posts {
     }
 
     @Override
-    public void repost(String username) {
-        post.repost(username);
+    public void repost(String username, RepostedPosts p) {
+        post.repost(username, p);
     }
 
     @Override
@@ -78,5 +81,29 @@ public class RepostedPosts implements Posts {
 
     public String getRepostUsername() {
         return repostUsername;
+    }
+
+    public void setPost(Posts post) {
+        this.post = post;
+    }
+
+    @Override
+    public String getOwnerUsername() {
+        return ownerUsername;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof RepostedPosts))
+            return false;
+        RepostedPosts posts = (RepostedPosts) o;
+        return getOwner().getUsername().equals(posts.getOwner().getUsername()) && getRepostUsername().equals(posts.getRepostUsername());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getOwnerUsername(), getRepostUsername());
     }
 }
