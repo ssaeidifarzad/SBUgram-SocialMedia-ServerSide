@@ -3,7 +3,7 @@ package Model.DataTypes.User;
 import Model.DataTypes.Post.Posts;
 
 import java.io.Serializable;
-import java.util.Map;
+import java.util.Vector;
 
 public class SafeUserData implements Serializable {
     public static final long serialVersionUID = 98700000L;
@@ -14,11 +14,11 @@ public class SafeUserData implements Serializable {
     private final String birthDate;
     private final boolean hasPhoto;
     private String photoFormat;
-    private final Map<Integer,Posts> posts;
+    private final Vector<Posts> posts;
     private final int followersCount;
     private final int followingsCount;
 
-    public SafeUserData(String username, String firstName, String lastName, String birthDate, boolean hasPhoto, Map<Integer,Posts> posts, int followersCount, int followingsCount) {
+    public SafeUserData(String username, String firstName, String lastName, String birthDate, boolean hasPhoto, Vector<Posts> posts, int followersCount, int followingsCount) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -53,7 +53,7 @@ public class SafeUserData implements Serializable {
         return photoFormat;
     }
 
-    public Map<Integer,Posts> getPosts() {
+    public Vector<Posts> getPosts() {
         return posts;
     }
 

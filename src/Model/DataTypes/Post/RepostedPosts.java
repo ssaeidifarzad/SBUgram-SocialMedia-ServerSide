@@ -1,31 +1,36 @@
 package Model.DataTypes.Post;
 
 import Model.DataTypes.User.User;
-
-import java.util.Objects;
 import java.util.Vector;
 
 public class RepostedPosts implements Posts {
     public static final long serialVersionUID = 500000000L;
+    private final User owner;
+    private final String title;
+    private final String description;
+    private final String dateAndTime;
+    private final long publishTime;
     private Posts post;
-    private final String ownerUsername;
     private final String repostUsername;
-    private int index;
 
     public RepostedPosts(Posts post, String repostUsername) {
+        owner = post.getOwner();
         this.post = post;
-        ownerUsername = post.getOwner().getUsername();
+        title = post.getTitle();
+        description = post.getDescription();
+        dateAndTime = post.getDateAndTime();
+        publishTime = post.getPublishTime();
         this.repostUsername = repostUsername;
     }
 
     @Override
     public User getOwner() {
-        return post.getOwner();
+        return owner;
     }
 
     @Override
     public String getDescription() {
-        return post.getDescription();
+        return description;
     }
 
     @Override
@@ -46,17 +51,17 @@ public class RepostedPosts implements Posts {
 
     @Override
     public String getTitle() {
-        return post.getTitle();
+        return title;
     }
 
     @Override
     public String getDateAndTime() {
-        return post.getDateAndTime();
+        return dateAndTime;
     }
 
     @Override
     public long getPublishTime() {
-        return post.getPublishTime();
+        return publishTime;
     }
 
     @Override
@@ -65,18 +70,8 @@ public class RepostedPosts implements Posts {
     }
 
     @Override
-    public void repost(String username, RepostedPosts p) {
+    public void repost(String username, Posts p) {
         post.repost(username, p);
-    }
-
-    @Override
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    @Override
-    public int getIndex() {
-        return index;
     }
 
     public String getRepostUsername() {
@@ -87,9 +82,8 @@ public class RepostedPosts implements Posts {
         this.post = post;
     }
 
-    @Override
-    public String getOwnerUsername() {
-        return ownerUsername;
+    public Posts getPost() {
+        return post;
     }
 
     @Override
@@ -99,11 +93,8 @@ public class RepostedPosts implements Posts {
         if (!(o instanceof RepostedPosts))
             return false;
         RepostedPosts posts = (RepostedPosts) o;
-        return getOwner().getUsername().equals(posts.getOwner().getUsername()) && getRepostUsername().equals(posts.getRepostUsername());
+        return getOwner().getUsername().equals(posts.getOwner().getUsername())
+                && post.equals(((RepostedPosts) o).getPost());
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getOwnerUsername(), getRepostUsername());
-    }
 }

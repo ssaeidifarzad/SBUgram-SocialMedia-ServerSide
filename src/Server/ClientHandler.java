@@ -16,7 +16,6 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
@@ -238,33 +237,45 @@ public class ClientHandler implements Runnable {
     }
 
     private void unfollow(UnfollowRequest unfollowRequest) {
-        user.getFollowings().remove(unfollowRequest.getSafeUserData().getUsername());
+        user.unfollow(unfollowRequest.getSafeUserData().getUsername());
         Database.getInstance().getUser(unfollowRequest.getSafeUserData().getUsername())
-                .getFollowers().remove(user.getUsername());
+                .getFollowers().remove(user);
         sendResponse(new UnfollowResponse(createNewUser()));
         printServerMessage("unfollow");
     }
 
     private void sendPosts() {
         Vector<Posts> posts = new Vector<>();
-        for (Map.Entry<String, User> entry : user.getFollowings().entrySet()) {
-            posts.addAll(entry.getValue().getPosts().values());
+        for (User u : user.getFollowings()) {
+            posts.addAll(createNewPosts(u.getPosts()));
         }
         sendResponse(new TimelinePostsResponse(posts));
     }
 
     private void repost(RepostRequest repostRequest) {
-        User u = Database.getInstance().getUser(repostRequest.getPost().getOwner().getUsername());
-        RepostedPosts p = new RepostedPosts(u.getPosts().get(repostRequest.getPost().getIndex()), user.getUsername());
-        user.addPost(p);
-        u.getPosts().get(repostRequest.getPost().getIndex()).repost(user.getUsername(), p);
+        User receivedUser = Database.getInstance().getUser(repostRequest.getPost().getOwner().getUsername());
+        Posts receivedPost;
+        if (repostRequest.getPost() instanceof RepostedPosts) {
+            receivedPost = receivedUser.getAPost(((RepostedPosts) repostRequest.getPost()).getPost());
+        } else {
+             receivedPost = receivedUser.getAPost(repostRequest.getPost());
+        }
+        RepostedPosts rp = new RepostedPosts(receivedPost, user.getUsername());
+        user.addPost(rp);
+        receivedPost.repost(user.getUsername(), rp);
         sendResponse(new RepostResponse(createNewUser()));
         printServerMessage("repost");
     }
 
     private void like(LikeRequest likeRequest) {
-        User u = Database.getInstance().getUser(likeRequest.getPost().getOwner().getUsername());
-        u.getPosts().get(likeRequest.getPost().getIndex()).like(this.user.getUsername());
+        User receivedUser = Database.getInstance().getUser(likeRequest.getPost().getOwner().getUsername());
+        Posts receivedPost;
+        if (likeRequest.getPost() instanceof RepostedPosts) {
+            receivedPost = receivedUser.getAPost(((RepostedPosts) likeRequest.getPost()).getPost());
+        } else {
+            receivedPost = receivedUser.getAPost(likeRequest.getPost());
+        }
+        receivedUser.getAPost(receivedPost).like(user.getUsername());
         sendResponse(new LikeResponse(createNewUser()));
         printServerMessage("like");
     }
@@ -305,10 +316,9 @@ public class ClientHandler implements Runnable {
                 user.getBirthDate(),
                 user.getGender(),
                 user.hasPhoto(),
-                new ConcurrentHashMap<>(user.getPosts()),
-                new ConcurrentHashMap<>(user.getFollowers()),
-                new ConcurrentHashMap<>(user.getFollowings()),
-                user.getLastPostIndex()
+                new Vector<>(createNewPosts(user.getPosts())),
+                new Vector<>(user.getFollowers()),
+                new Vector<>(user.getFollowings())
         );
     }
 
@@ -319,12 +329,32 @@ public class ClientHandler implements Runnable {
                 user.getLastName(),
                 user.getBirthDate(),
                 user.hasPhoto(),
-                user.getPosts(),
+                createNewPosts(user.getPosts()),
                 user.getFollowers().size(),
                 user.getFollowings().size());
         if (user.hasPhoto())
             safeUser.setPhotoFormat(user.getPhotoFormat());
         return safeUser;
+    }
+
+    private Vector<Posts> createNewPosts(Vector<Posts> posts) {
+        Vector<Posts> temp = new Vector<>();
+        for (Posts p : posts) {
+            if (p instanceof RepostedPosts) {
+                temp.add(new RepostedPosts(((RepostedPosts) p).getPost(), ((RepostedPosts) p).getRepostUsername()));
+            } else {
+                temp.add(new Post(
+                        p.getOwner(),
+                        p.getTitle(),
+                        p.getDescription(),
+                        p.getLikes(),
+                        p.getReposts(),
+                        p.getDateAndTime(),
+                        p.getPublishTime()
+                ));
+            }
+        }
+        return temp;
     }
 
     private void printServerMessage(String message) {

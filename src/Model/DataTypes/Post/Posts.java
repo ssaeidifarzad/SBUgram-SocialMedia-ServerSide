@@ -26,11 +26,5 @@ public interface Posts extends Serializable {
 
     void like(String username);
 
-    void repost(String username, RepostedPosts p);
-
-    void setIndex(int index);
-
-    int getIndex();
-
-    String getOwnerUsername();
+    void repost(String username, Posts p);
 }
