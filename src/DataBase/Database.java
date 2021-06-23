@@ -35,8 +35,7 @@ public class Database implements Serializable {
                     e.printStackTrace();
                 }
             }
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -72,6 +71,19 @@ public class Database implements Serializable {
     private void createUserDirectory(User user) {
         try {
             Files.createDirectory(Paths.get("src/DataBase/UserDirectories/" + user.getUsername()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void update() {
+        File data = new File("src/DataBase/DataBaseInitialUserIDS.txt");
+        try (FileReader fr = new FileReader(data);
+             BufferedReader br = new BufferedReader(fr)) {
+            String ID;
+            while ((ID = br.readLine()) != null) {
+                new UserDataHandler(Database.database.getUser(ID)).updateData();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -2,7 +2,6 @@ package Model.DataTypes.Post;
 
 import Model.DataTypes.User.User;
 
-import java.util.Objects;
 import java.util.Vector;
 
 public class Post implements Posts {
@@ -12,10 +11,10 @@ public class Post implements Posts {
     private final String description;
     private int likes;
     private int reposts;
-    private final Vector<Comment> comments = new Vector<>();
-    private final Vector<String> likedUsernames = new Vector<>();
-    private final Vector<String> repostedUsernames = new Vector<>();
-    private final Vector<RepostedPosts> repostedPosts = new Vector<>();
+    private Vector<Comment> comments = new Vector<>();
+    private Vector<String> likedUsernames = new Vector<>();
+    private Vector<String> repostedUsernames = new Vector<>();
+    private Vector<RepostedPosts> repostedPosts = new Vector<>();
     private final String dateAndTime;
     private final long publishTime;
 
@@ -26,12 +25,17 @@ public class Post implements Posts {
         this.publishTime = publishTime;
     }
 
-    public Post(User owner, String title, String description,
-                int likes, int reposts, String dateAndTime, long publishTime) {
+    public Post(User owner, String title, String description, int likes, int reposts, Vector<Comment> comments,
+                Vector<String> likedUsernames, Vector<String> repostedUsernames, Vector<RepostedPosts> repostedPosts,
+                String dateAndTime, long publishTime) {
         this(title, description, dateAndTime, publishTime);
         this.owner = owner;
         this.likes = likes;
         this.reposts = reposts;
+        this.comments = comments;
+        this.likedUsernames = likedUsernames;
+        this.repostedUsernames = repostedUsernames;
+        this.repostedPosts = repostedPosts;
     }
 
     public void setOwner(User user) {
@@ -82,27 +86,37 @@ public class Post implements Posts {
 
     @Override
     public void like(String username) {
-        if (!likedUsernames.contains(username)) {
-            likedUsernames.add(username);
-            likes++;
-        }
+        likedUsernames.add(username);
+        likes++;
         update();
     }
 
     @Override
-    public void repost(String username, Posts p) {
-        if (!repostedUsernames.contains(username)) {
-            repostedUsernames.add(username);
-            reposts++;
-            repostedPosts.add(new RepostedPosts(p, username));
-        }
+    public void repost(String username, RepostedPosts p) {
+        repostedUsernames.add(username);
+        reposts++;
+        repostedPosts.add(p);
         update();
+    }
+
+
+    public Vector<String> getLikedUsernames() {
+        return likedUsernames;
+    }
+
+    public Vector<String> getRepostedUsernames() {
+        return repostedUsernames;
     }
 
     private void update() {
         for (RepostedPosts post : repostedPosts) {
             post.setPost(this);
         }
+    }
+
+
+    public Vector<RepostedPosts> getRepostedPosts() {
+        return repostedPosts;
     }
 
     @Override

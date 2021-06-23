@@ -1,6 +1,8 @@
 package Model.DataTypes.Post;
 
 import Model.DataTypes.User.User;
+
+import java.util.Date;
 import java.util.Vector;
 
 public class RepostedPosts implements Posts {
@@ -12,6 +14,7 @@ public class RepostedPosts implements Posts {
     private final long publishTime;
     private Posts post;
     private final String repostUsername;
+    private final long repostTime;
 
     public RepostedPosts(Posts post, String repostUsername) {
         owner = post.getOwner();
@@ -21,6 +24,19 @@ public class RepostedPosts implements Posts {
         dateAndTime = post.getDateAndTime();
         publishTime = post.getPublishTime();
         this.repostUsername = repostUsername;
+        repostTime = new Date().getTime();
+    }
+
+    public RepostedPosts(User owner, String title, String description, String dateAndTime,
+                         long publishTime, Posts post, String repostUsername, long repostTime) {
+        this.owner = owner;
+        this.title = title;
+        this.description = description;
+        this.dateAndTime = dateAndTime;
+        this.publishTime = publishTime;
+        this.post = post;
+        this.repostUsername = repostUsername;
+        this.repostTime = repostTime;
     }
 
     @Override
@@ -70,7 +86,7 @@ public class RepostedPosts implements Posts {
     }
 
     @Override
-    public void repost(String username, Posts p) {
+    public void repost(String username, RepostedPosts p) {
         post.repost(username, p);
     }
 
@@ -94,7 +110,11 @@ public class RepostedPosts implements Posts {
             return false;
         RepostedPosts posts = (RepostedPosts) o;
         return getOwner().getUsername().equals(posts.getOwner().getUsername())
-                && post.equals(((RepostedPosts) o).getPost());
+                && getRepostTime() == posts.getRepostTime()
+                && getRepostUsername().equals(posts.getRepostUsername());
     }
 
+    public long getRepostTime() {
+        return repostTime;
+    }
 }

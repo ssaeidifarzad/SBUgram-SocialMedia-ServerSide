@@ -26,5 +26,5 @@ public interface Posts extends Serializable {
 
     void like(String username);
 
-    void repost(String username, Posts p);
+    void repost(String username, RepostedPosts p);
 }

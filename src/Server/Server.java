@@ -1,6 +1,10 @@
 package Server;
 
 import DataBase.Database;
+import Model.DataTypes.Post.Post;
+import Model.DataTypes.Post.Posts;
+import Model.DataTypes.Post.RepostedPosts;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -8,6 +12,7 @@ import java.net.Socket;
 public class Server {
     public static final int PORT = 1111;
     public static ServerSocket serverSocket;
+
     public static void main(String[] args) {
         Database.getInstance().init();
         try {
