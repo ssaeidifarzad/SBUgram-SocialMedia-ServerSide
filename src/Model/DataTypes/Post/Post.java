@@ -19,6 +19,7 @@ public class Post implements Posts {
     private Vector<RepostedPosts> repostedPosts = new Vector<>();
     private final String dateAndTime;
     private final long publishTime;
+    private int indexInOwnerPosts;
 
     public Post(String title, String description, String dateAndTime, long publishTime) {
         this.title = title;
@@ -29,7 +30,7 @@ public class Post implements Posts {
 
     public Post(User owner, String title, String description, int likes, int reposts, Vector<Comment> comments,
                 Vector<String> likedUsernames, Vector<String> repostedUsernames, Vector<RepostedPosts> repostedPosts,
-                String dateAndTime, long publishTime) {
+                String dateAndTime, long publishTime, int indexInOwnerPosts) {
         this.title = title;
         this.description = description;
         this.dateAndTime = dateAndTime;
@@ -41,6 +42,7 @@ public class Post implements Posts {
         this.likedUsernames = likedUsernames;
         this.repostedUsernames = repostedUsernames;
         this.repostedPosts = repostedPosts;
+        this.indexInOwnerPosts = indexInOwnerPosts;
     }
 
     public void setOwner(User user) {
@@ -102,6 +104,14 @@ public class Post implements Posts {
         reposts++;
         repostedPosts.add(p);
         update();
+    }
+
+    public int getIndexInOwnerPosts() {
+        return indexInOwnerPosts;
+    }
+
+    public void setIndexInOwnerPosts(int indexInOwnerPosts) {
+        this.indexInOwnerPosts = indexInOwnerPosts;
     }
 
     public void leaveComment(Comment comment) {

@@ -88,7 +88,7 @@ public class ClientHandler implements Runnable {
             }
         }
         if (user != null) {
-            printServerMessage("quit");
+            printServerMessage("disconnect", "disconnected");
         }
         disconnect();
     }
@@ -111,12 +111,12 @@ public class ClientHandler implements Runnable {
                 loginResponse.addResponse("success");
                 user = Database.getInstance().getUser(lr.getUsername());
                 userDataHandler = new UserDataHandler(user);
-                User temp = createNewUser();
-                if (user.hasPhoto()) {
-                    temp.setPhotoFormat(user.getPhotoFormat());
+                User user = createNewUser();
+                if (this.user.hasPhoto()) {
+                    user.setPhotoFormat(this.user.getPhotoFormat());
                 }
-                loginResponse.setUser(temp);
-                printServerMessage("login");
+                loginResponse.setUser(user);
+                printServerMessage("connect,login", "signed in");
             } else {
                 loginResponse.addResponse("wrong_password");
             }
@@ -133,7 +133,7 @@ public class ClientHandler implements Runnable {
             signupResponse.addResponse("unavailable_username");
             signup = false;
         }
-        if (signupRequest.getPassword().length() < 1) {
+        if (signupRequest.getPassword().length() < 8) {
             signupResponse.addResponse("wrong_password_format");
             signup = false;
         }
@@ -153,16 +153,21 @@ public class ClientHandler implements Runnable {
             );
             Database.getInstance().addUser(user);
             UserDataHandler udh = new UserDataHandler(user);
+            String address = "";
             if (signupRequest.isHasPhoto()) {
                 try {
                     ImageMessage image = ((ImageMessage) objectInputStream.readObject());
                     udh.writeImage(image.getData(), image.getFormat());
+                    address = "DataBase/UserDirectories/" +
+                            signupRequest.getUsername() + "/image." + image.getFormat();
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
             signupResponse.addResponse("success");
-//            printServerMessage("register");
+            if (signupRequest.isHasPhoto()) {
+                printServerMessage("register - " + address, "registered");
+            }
         }
         sendResponse(signupResponse);
     }
@@ -190,16 +195,18 @@ public class ClientHandler implements Runnable {
             Database.getInstance().getLoginData().put(user.getUsername(), user.getPassword());
             Database.getInstance().getUsers().put(user.getUsername(), user);
             sendResponse(response);
+            String address = "";
             if (editProfileRequest.isHasPhoto()) {
                 try {
                     ImageMessage image = ((ImageMessage) objectInputStream.readObject());
                     userDataHandler.writeImage(image.getData(), image.getFormat());
                     user.setPhotoFormat(image.getFormat());
+                    address = "DataBase/UserDirectories/" + user.getUsername() + "/image." + image.getFormat();
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
-            printServerMessage("update info");
+            printServerMessage("update info - " + address, "updated their info");
         } else {
             sendResponse(response);
         }
@@ -212,12 +219,12 @@ public class ClientHandler implements Runnable {
         user.addPost(p);
         publishResponse.addResponse("success");
         publishResponse.setUser(createNewUser());
-        printServerMessage("publish");
+        printServerMessage("publish", "published a post");
         sendResponse(publishResponse);
     }
 
     private void logout() {
-        printServerMessage("logout");
+        printServerMessage("logout", "signed out");
         user = null;
         userDataHandler = null;
     }
@@ -226,7 +233,8 @@ public class ClientHandler implements Runnable {
         SearchResponse searchResponse = new SearchResponse();
         if (Database.getInstance().getUsers().containsKey(searchRequest.getSearchedUsername())) {
             searchResponse.addResponse("success");
-            searchResponse.setSafeUserData(createSafeUser(Database.getInstance().getUser(searchRequest.getSearchedUsername())));
+            searchResponse.setSafeUserData(createSafeUser(Database.getInstance()
+                    .getUser(searchRequest.getSearchedUsername())));
             sendResponse(searchResponse);
             if (searchResponse.getSafeUserData().hasPhoto()) {
                 sendOtherProfileImage(Database.getInstance().getUser(searchRequest.getSearchedUsername()));
@@ -241,7 +249,8 @@ public class ClientHandler implements Runnable {
         user.addFollowing(Database.getInstance().getUser(followRequest.getSafeUserData().getUsername()));
         Database.getInstance().getUser(followRequest.getSafeUserData().getUsername()).addFollower(user);
         sendResponse(new FollowResponse(createNewUser()));
-        printServerMessage("follow");
+        printServerMessage("follow", "started following " + "\""
+                + followRequest.getSafeUserData().getUsername() + "\"");
     }
 
     private void unfollow(UnfollowRequest unfollowRequest) {
@@ -249,7 +258,8 @@ public class ClientHandler implements Runnable {
         Database.getInstance().getUser(unfollowRequest.getSafeUserData().getUsername())
                 .getFollowers().remove(user);
         sendResponse(new UnfollowResponse(createNewUser()));
-        printServerMessage("unfollow");
+        printServerMessage("unfollow", "unfollowed " +
+                "\"" + unfollowRequest.getSafeUserData().getUsername() + "\"");
     }
 
     private void sendPosts() {
@@ -257,7 +267,9 @@ public class ClientHandler implements Runnable {
         for (User u : user.getFollowings()) {
             posts.addAll(createNewPosts(u.getPosts()));
         }
+        posts.addAll(user.getPosts());
         sendResponse(new TimelinePostsResponse(posts));
+        printServerMessage("get posts list", "got their timeline posts");
     }
 
     private void repost(RepostRequest repostRequest) {
@@ -265,9 +277,9 @@ public class ClientHandler implements Runnable {
         User receivedUser = Database.getInstance().getUser(repostRequest.getPost().getOwner().getUsername());
         Posts receivedPost;
         if (repostRequest.getPost() instanceof RepostedPosts) {
-            receivedPost = receivedUser.getAPost(((RepostedPosts) repostRequest.getPost()).getPost());
+            receivedPost = receivedUser.getAPost(((Post) ((RepostedPosts) repostRequest.getPost()).getPost()).getIndexInOwnerPosts());
         } else {
-            receivedPost = receivedUser.getAPost(repostRequest.getPost());
+            receivedPost = receivedUser.getAPost(((Post) repostRequest.getPost()).getIndexInOwnerPosts());
         }
         if (((Post) receivedPost).getRepostedUsernames().contains(user.getUsername())) {
             repostResponse.addResponse("fail");
@@ -281,7 +293,8 @@ public class ClientHandler implements Runnable {
         repostResponse.setUser(createNewUser());
         repostResponse.addResponse("success");
         sendResponse(repostResponse);
-        printServerMessage("repost");
+        printServerMessage("repost", "reposted " + rp.getPost().getOwner().getUsername()
+                + "'s post: " + rp.getTitle());
     }
 
     private void like(LikeRequest likeRequest) {
@@ -289,9 +302,9 @@ public class ClientHandler implements Runnable {
         User receivedUser = Database.getInstance().getUser(likeRequest.getPost().getOwner().getUsername());
         Posts receivedPost;
         if (likeRequest.getPost() instanceof RepostedPosts) {
-            receivedPost = receivedUser.getAPost(((RepostedPosts) likeRequest.getPost()).getPost());
+            receivedPost = receivedUser.getAPost(((Post) ((RepostedPosts) likeRequest.getPost()).getPost()).getIndexInOwnerPosts());
         } else {
-            receivedPost = receivedUser.getAPost(likeRequest.getPost());
+            receivedPost = receivedUser.getAPost(((Post) likeRequest.getPost()).getIndexInOwnerPosts());
         }
         if (((Post) receivedPost).getLikedUsernames().contains(user.getUsername())) {
             likeResponse.addResponse("fail");
@@ -299,24 +312,27 @@ public class ClientHandler implements Runnable {
             sendResponse(likeResponse);
             return;
         }
-        receivedUser.getAPost(receivedPost).like(user.getUsername());
+        receivedUser.getAPost(((Post) receivedPost).getIndexInOwnerPosts()).like(user.getUsername());
         likeResponse.addResponse("success");
         likeResponse.setUser(createNewUser());
         sendResponse(likeResponse);
-        printServerMessage("like");
+        printServerMessage("like", "liked " + receivedPost.getOwner()
+                .getUsername() + "'s post : " + receivedPost.getTitle());
     }
 
     private void leaveComment(CommentRequest commentRequest) {
         Posts p = commentRequest.getPost();
+        User u = Database.getInstance().getUser(p.getOwner().getUsername());
         Posts post;
         if (p instanceof RepostedPosts) {
-            post = Database.getInstance().getUser(p.getOwner().getUsername()).getAPost(((RepostedPosts) p).getPost());
+            post = u.getAPost(((Post) ((RepostedPosts) p).getPost()).getIndexInOwnerPosts());
         } else {
-            post = Database.getInstance().getUser(p.getOwner().getUsername()).getAPost(p);
+            post = u.getAPost(((Post) p).getIndexInOwnerPosts());
         }
         ((Post) post).leaveComment(commentRequest.getComment());
         sendResponse(new CommentResponse(createNewUser()));
-        printServerMessage("comment");
+        printServerMessage("comment", "left a comment on " +
+                post.getOwner().getUsername() +"'s post: ");
     }
 
     private void sendImage() {
@@ -357,7 +373,8 @@ public class ClientHandler implements Runnable {
                 user.hasPhoto(),
                 createNewPosts(user.getPosts()),
                 new Vector<>(user.getFollowers()),
-                new Vector<>(user.getFollowings())
+                new Vector<>(user.getFollowings()),
+                user.getLastPostIndex()
         );
     }
 
@@ -378,11 +395,14 @@ public class ClientHandler implements Runnable {
 
     private void updatePost(UpdatedPostRequest updatedPostRequest) {
         Posts p = updatedPostRequest.getPost();
+        User u;
         Posts receivedPost;
         if (p instanceof RepostedPosts) {
-            receivedPost = Database.getInstance().getUser(((RepostedPosts) p).getRepostUsername()).getAPost(p);
+            u = Database.getInstance().getUser(((RepostedPosts) p).getRepostUsername());
+            receivedPost = u.getAPost(((RepostedPosts) p).getIndexInRepostUserPosts());
         } else {
-            receivedPost = Database.getInstance().getUser(p.getOwner().getUsername()).getAPost(p);
+            u = Database.getInstance().getUser(p.getOwner().getUsername());
+            receivedPost = u.getAPost(((Post) p).getIndexInOwnerPosts());
         }
         sendResponse(new UpdatedPostResponse(createNewPost(receivedPost)));
     }
@@ -398,8 +418,8 @@ public class ClientHandler implements Runnable {
                         p.getDateAndTime(),
                         ((RepostedPosts) p).getPost(),
                         ((RepostedPosts) p).getRepostUsername(),
-                        ((RepostedPosts) p).getRepostTime()
-                ));
+                        ((RepostedPosts) p).getRepostTime(),
+                        ((RepostedPosts) p).getIndexInRepostUserPosts()));
             } else {
                 temp.add(new Post(
                         p.getOwner(),
@@ -412,7 +432,8 @@ public class ClientHandler implements Runnable {
                         ((Post) p).getRepostedUsernames(),
                         ((Post) p).getRepostedPosts(),
                         p.getDateAndTime(),
-                        p.getPublishTime()
+                        p.getPublishTime(),
+                        ((Post) p).getIndexInOwnerPosts()
                 ));
             }
         }
@@ -429,8 +450,8 @@ public class ClientHandler implements Runnable {
                     p.getDateAndTime(),
                     createNewPost(((RepostedPosts) p).getPost()),
                     ((RepostedPosts) p).getRepostUsername(),
-                    ((RepostedPosts) p).getRepostTime()
-            );
+                    ((RepostedPosts) p).getRepostTime(),
+                    ((RepostedPosts) p).getIndexInRepostUserPosts());
         } else {
             post = new Post(
                     p.getOwner(),
@@ -443,15 +464,16 @@ public class ClientHandler implements Runnable {
                     new Vector<>(((Post) p).getRepostedUsernames()),
                     ((Post) p).getRepostedPosts(),
                     p.getDateAndTime(),
-                    p.getPublishTime()
+                    p.getPublishTime(),
+                    ((Post) p).getIndexInOwnerPosts()
             );
         }
         return post;
     }
 
-    private void printServerMessage(String message) {
-        String temp = "[ action: " + message + "\n" +
-                "\"" + user.getUsername() + "\" " + message + "\n" +
+    private void printServerMessage(String message1, String message2) {
+        String temp = "[ action: " + message1 + "\n" +
+                "\"" + user.getUsername() + "\" " + message2 + "\n" +
                 "time: " + LocalDateTime.now() + " ]\n";
         System.out.println(temp);
     }

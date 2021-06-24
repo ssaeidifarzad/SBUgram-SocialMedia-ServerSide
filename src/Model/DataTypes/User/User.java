@@ -1,5 +1,8 @@
 package Model.DataTypes.User;
+
+import Model.DataTypes.Post.Post;
 import Model.DataTypes.Post.Posts;
+import Model.DataTypes.Post.RepostedPosts;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -18,17 +21,19 @@ public class User implements Serializable {
     private Vector<Posts> posts = new Vector<>();
     private Vector<User> followers = new Vector<>();
     private Vector<User> followings = new Vector<>();
+    private int lastPostIndex = 0;
 
     public User(String username) {
         this.username = username;
     }
 
     public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto, Vector<Posts> posts,
-                Vector<User> followers, Vector<User> followings) {
+                Vector<User> followers, Vector<User> followings, int lastPostIndex) {
         this(username, password, firstName, lastName, birthDate, gender, hasPhoto);
         this.posts = posts;
         this.followers = followers;
         this.followings = followings;
+        this.lastPostIndex = lastPostIndex;
     }
 
     public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto) {
@@ -95,6 +100,12 @@ public class User implements Serializable {
 
     public void addPost(Posts post) {
         posts.add(post);
+        if (post instanceof Post) {
+            ((Post) post).setIndexInOwnerPosts(lastPostIndex);
+        } else {
+            ((RepostedPosts) post).setIndexInRepostUserPosts(lastPostIndex);
+        }
+        lastPostIndex++;
     }
 
     public void addFollower(User user) {
@@ -133,13 +144,12 @@ public class User implements Serializable {
         return false;
     }
 
-    public Posts getAPost(Posts post) {
-        for (Posts p : posts) {
-            if (p.equals(post)) {
-                return p;
-            }
-        }
-        return null;
+    public Posts getAPost(int index) {
+        return posts.get(index);
+    }
+
+    public int getLastPostIndex() {
+        return lastPostIndex;
     }
 
     public void unfollow(String username) {
