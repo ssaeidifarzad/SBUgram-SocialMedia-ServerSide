@@ -2,6 +2,8 @@ package Model.DataTypes.Post;
 
 import Model.DataTypes.User.User;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 
 public class Post implements Posts {
@@ -21,14 +23,17 @@ public class Post implements Posts {
     public Post(String title, String description, String dateAndTime, long publishTime) {
         this.title = title;
         this.description = description;
-        this.dateAndTime = dateAndTime;
+        this.dateAndTime = LocalDateTime.parse(dateAndTime).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         this.publishTime = publishTime;
     }
 
     public Post(User owner, String title, String description, int likes, int reposts, Vector<Comment> comments,
                 Vector<String> likedUsernames, Vector<String> repostedUsernames, Vector<RepostedPosts> repostedPosts,
                 String dateAndTime, long publishTime) {
-        this(title, description, dateAndTime, publishTime);
+        this.title = title;
+        this.description = description;
+        this.dateAndTime = dateAndTime;
+        this.publishTime = publishTime;
         this.owner = owner;
         this.likes = likes;
         this.reposts = reposts;
@@ -99,6 +104,9 @@ public class Post implements Posts {
         update();
     }
 
+    public void leaveComment(Comment comment) {
+        comments.add(comment);
+    }
 
     public Vector<String> getLikedUsernames() {
         return likedUsernames;

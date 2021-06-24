@@ -11,7 +11,6 @@ public class RepostedPosts implements Posts {
     private final String title;
     private final String description;
     private final String dateAndTime;
-    private final long publishTime;
     private Posts post;
     private final String repostUsername;
     private final long repostTime;
@@ -22,18 +21,16 @@ public class RepostedPosts implements Posts {
         title = post.getTitle();
         description = post.getDescription();
         dateAndTime = post.getDateAndTime();
-        publishTime = post.getPublishTime();
         this.repostUsername = repostUsername;
         repostTime = new Date().getTime();
     }
 
-    public RepostedPosts(User owner, String title, String description, String dateAndTime,
-                         long publishTime, Posts post, String repostUsername, long repostTime) {
+    public RepostedPosts(User owner, String title, String description, String dateAndTime
+            , Posts post, String repostUsername, long repostTime) {
         this.owner = owner;
         this.title = title;
         this.description = description;
         this.dateAndTime = dateAndTime;
-        this.publishTime = publishTime;
         this.post = post;
         this.repostUsername = repostUsername;
         this.repostTime = repostTime;
@@ -77,7 +74,7 @@ public class RepostedPosts implements Posts {
 
     @Override
     public long getPublishTime() {
-        return publishTime;
+        return repostTime;
     }
 
     @Override

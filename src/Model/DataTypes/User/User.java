@@ -1,8 +1,5 @@
 package Model.DataTypes.User;
-
-import Model.DataTypes.Post.Post;
 import Model.DataTypes.Post.Posts;
-import Model.DataTypes.Post.RepostedPosts;
 
 import java.io.Serializable;
 import java.util.Objects;

@@ -77,6 +77,8 @@ public class ClientHandler implements Runnable {
                     updatePost(((UpdatedPostRequest) message));
                 } else if (message instanceof ProfileImageRequest) {
                     sendOtherProfileImage(Database.getInstance().getUser(((ProfileImageRequest) message).getUsername()));
+                } else if (message instanceof CommentRequest) {
+                    leaveComment(((CommentRequest) message));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -304,6 +306,19 @@ public class ClientHandler implements Runnable {
         printServerMessage("like");
     }
 
+    private void leaveComment(CommentRequest commentRequest) {
+        Posts p = commentRequest.getPost();
+        Posts post;
+        if (p instanceof RepostedPosts) {
+            post = Database.getInstance().getUser(p.getOwner().getUsername()).getAPost(((RepostedPosts) p).getPost());
+        } else {
+            post = Database.getInstance().getUser(p.getOwner().getUsername()).getAPost(p);
+        }
+        ((Post) post).leaveComment(commentRequest.getComment());
+        sendResponse(new CommentResponse(createNewUser()));
+        printServerMessage("comment");
+    }
+
     private void sendImage() {
         try {
             objectOutputStream.writeObject(new ImageMessage(userDataHandler.readImage(),
@@ -381,7 +396,6 @@ public class ClientHandler implements Runnable {
                         p.getTitle(),
                         p.getDescription(),
                         p.getDateAndTime(),
-                        p.getPublishTime(),
                         ((RepostedPosts) p).getPost(),
                         ((RepostedPosts) p).getRepostUsername(),
                         ((RepostedPosts) p).getRepostTime()
@@ -413,7 +427,6 @@ public class ClientHandler implements Runnable {
                     p.getTitle(),
                     p.getDescription(),
                     p.getDateAndTime(),
-                    p.getPublishTime(),
                     createNewPost(((RepostedPosts) p).getPost()),
                     ((RepostedPosts) p).getRepostUsername(),
                     ((RepostedPosts) p).getRepostTime()
@@ -425,9 +438,9 @@ public class ClientHandler implements Runnable {
                     p.getDescription(),
                     p.getLikes(),
                     p.getReposts(),
-                    p.getComments(),
-                    ((Post) p).getLikedUsernames(),
-                    ((Post) p).getRepostedUsernames(),
+                    new Vector<>(p.getComments()),
+                    new Vector<>(((Post) p).getLikedUsernames()),
+                    new Vector<>(((Post) p).getRepostedUsernames()),
                     ((Post) p).getRepostedPosts(),
                     p.getDateAndTime(),
                     p.getPublishTime()
