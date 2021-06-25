@@ -58,10 +58,11 @@ public class Database implements Serializable {
         createUserDirectory(user);
         users.put(user.getUsername(), user);
         loginData.put(user.getUsername(), user.getPassword());
-        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("src/DataBase/UserDirectories/"
-                + user.getUsername() + "/data.bin"));
+        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+                new FileOutputStream("src/DataBase/UserDirectories/"
+                        + user.getUsername() + "/data.bin"));
              FileWriter fileWriter = new FileWriter("src/DataBase/DataBaseInitialUserIDS.txt", true)) {
-            fileWriter.write("\n" + user.getUsername());
+            fileWriter.write(user.getUsername() + "\n");
             objectOutputStream.writeObject(user);
         } catch (IOException e) {
             e.printStackTrace();

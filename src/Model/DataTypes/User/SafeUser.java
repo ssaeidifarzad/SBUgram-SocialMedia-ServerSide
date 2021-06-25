@@ -5,8 +5,8 @@ import Model.DataTypes.Post.Posts;
 import java.io.Serializable;
 import java.util.Vector;
 
-public class SafeUserData implements Serializable {
-    public static final long serialVersionUID = 98700000L;
+public class SafeUser implements Serializable {
+    public static final long serialVersionUID = 16843517865443L;
 
     private final String username;
     private final String firstName;
@@ -18,7 +18,7 @@ public class SafeUserData implements Serializable {
     private final int followersCount;
     private final int followingsCount;
 
-    public SafeUserData(String username, String firstName, String lastName, String birthDate, boolean hasPhoto, Vector<Posts> posts, int followersCount, int followingsCount) {
+    public SafeUser(String username, String firstName, String lastName, String birthDate, boolean hasPhoto, Vector<Posts> posts, int followersCount, int followingsCount) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;

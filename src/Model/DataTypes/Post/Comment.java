@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Comment implements Serializable {
-    public static final long serialVersionUID = 600000000L;
-    private String text;
-    private String ownerUsername;
-    private String publishTime;
+    public static final long serialVersionUID = 741671746574174L;
+    private final String text;
+    private final String ownerUsername;
+    private final String publishTime;
 
     public Comment(String text, String ownerUsername, String publishTime) {
         this.text = text;

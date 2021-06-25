@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class RepostResponse implements ServerMessage {
     public static final long serialVersionUID = 864641651789188498L;
-    private ArrayList<String> responses = new ArrayList<>();
+    private final ArrayList<String> responses = new ArrayList<>();
     private User user;
 
     public User getUser() {

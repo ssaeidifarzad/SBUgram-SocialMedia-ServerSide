@@ -1,16 +1,16 @@
 package Model.Messages.ServerMessages;
 
-import Model.DataTypes.User.SafeUserData;
+import Model.DataTypes.User.SafeUser;
 
 public class UpdatedSafeUserResponse implements ServerMessage {
     public static final long serialVersionUID = 537354658417485L;
-    private final SafeUserData safeUser;
+    private final SafeUser safeUser;
 
-    public UpdatedSafeUserResponse(SafeUserData safeUser) {
+    public UpdatedSafeUserResponse(SafeUser safeUser) {
         this.safeUser = safeUser;
     }
 
-    public SafeUserData getSafeUser() {
+    public SafeUser getSafeUser() {
         return safeUser;
     }
 }

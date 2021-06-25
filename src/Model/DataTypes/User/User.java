@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Vector;
 
 public class User implements Serializable {
-    public static final long serialVersionUID = 500000L;
+    public static final long serialVersionUID = 761141963264241000L;
     private final String username;
     private String password;
     private String firstName;

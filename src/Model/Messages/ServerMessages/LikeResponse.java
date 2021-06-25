@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class LikeResponse implements ServerMessage {
     public static final long serialVersionUID = 8646416189467188498L;
     private  User user;
-    private ArrayList<String> responses = new ArrayList<>();
+    private  final ArrayList<String> responses = new ArrayList<>();
 
 
     public User getUser() {

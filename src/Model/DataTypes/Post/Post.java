@@ -1,14 +1,14 @@
 package Model.DataTypes.Post;
 
-import Model.DataTypes.User.User;
+import Model.DataTypes.User.SafeUser;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 
 public class Post implements Posts {
-    public static final long serialVersionUID = 300000L;
-    private User owner;
+    public static final long serialVersionUID = 67746218714634L;
+    private SafeUser owner;
     private final String title;
     private final String description;
     private int likes;
@@ -28,7 +28,7 @@ public class Post implements Posts {
         this.publishTime = publishTime;
     }
 
-    public Post(User owner, String title, String description, int likes, int reposts, Vector<Comment> comments,
+    public Post(SafeUser owner, String title, String description, int likes, int reposts, Vector<Comment> comments,
                 Vector<String> likedUsernames, Vector<String> repostedUsernames, Vector<RepostedPosts> repostedPosts,
                 String dateAndTime, long publishTime, int indexInOwnerPosts) {
         this.title = title;
@@ -45,13 +45,13 @@ public class Post implements Posts {
         this.indexInOwnerPosts = indexInOwnerPosts;
     }
 
-    public void setOwner(User user) {
+    public void setOwner(SafeUser user) {
         this.owner = user;
         update();
     }
 
     @Override
-    public User getOwner() {
+    public SafeUser getOwner() {
         return owner;
     }
 

@@ -1,16 +1,16 @@
 package Model.Messages.ClientMessages;
 
-import Model.DataTypes.User.SafeUserData;
+import Model.DataTypes.User.SafeUser;
 
 public class UnfollowRequest implements ClientMessage {
     public static final long serialVersionUID = 4981361698L;
-    private final SafeUserData safeUserData;
+    private final SafeUser safeUser;
 
-    public UnfollowRequest(SafeUserData safeUserData) {
-        this.safeUserData = safeUserData;
+    public UnfollowRequest(SafeUser safeUser) {
+        this.safeUser = safeUser;
     }
 
-    public SafeUserData getSafeUserData() {
-        return safeUserData;
+    public SafeUser getSafeUserData() {
+        return safeUser;
     }
 }

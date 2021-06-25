@@ -57,8 +57,4 @@ public class UserDataHandler {
         return photoFormat;
     }
 
-    @Override
-    public void finalize() {
-        updateData();
-    }
 }

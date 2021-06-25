@@ -5,8 +5,8 @@ import Model.DataTypes.Post.Posts;
 
 public class CommentRequest implements ClientMessage {
     public static final long serialVersionUID = 23647562095620256L;
-    private Posts post;
-    private Comment comment;
+    private final Posts post;
+    private final Comment comment;
 
     public CommentRequest(Posts post, Comment comment) {
         this.post = post;

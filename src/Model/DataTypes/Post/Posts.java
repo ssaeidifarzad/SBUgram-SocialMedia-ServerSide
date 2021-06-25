@@ -1,14 +1,14 @@
 package Model.DataTypes.Post;
 
-import Model.DataTypes.User.User;
+import Model.DataTypes.User.SafeUser;
 
 import java.io.Serializable;
 import java.util.Vector;
 
 public interface Posts extends Serializable {
-    long serialVersionUID = 40000000L;
+    long serialVersionUID = 484684841853431L;
 
-    User getOwner();
+    SafeUser getOwner();
 
     String getDescription();
 

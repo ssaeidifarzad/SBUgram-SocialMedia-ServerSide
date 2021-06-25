@@ -1,12 +1,10 @@
 package Model.Messages.ServerMessages;
 
-import Model.DataTypes.User.User;
-
 import java.util.ArrayList;
 
 public class PasswordRecoveryResponse implements ServerMessage {
     public static final long serialVersionUID = 154524000005261L;
-    private ArrayList<String> responses = new ArrayList<>();
+    private final ArrayList<String> responses = new ArrayList<>();
 
     public ArrayList<String> getResponses() {
         return responses;

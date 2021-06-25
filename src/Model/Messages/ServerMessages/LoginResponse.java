@@ -5,8 +5,8 @@ import Model.DataTypes.User.User;
 import java.util.ArrayList;
 
 public class LoginResponse implements ServerMessage {
-    public static final long serialVersionUID = 111111L;
-    private ArrayList<String> responses = new ArrayList<>();
+    public static final long serialVersionUID = 126485186438474000L;
+    private final ArrayList<String> responses = new ArrayList<>();
     private User user;
 
 

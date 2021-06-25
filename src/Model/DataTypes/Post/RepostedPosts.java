@@ -1,13 +1,13 @@
 package Model.DataTypes.Post;
 
-import Model.DataTypes.User.User;
+import Model.DataTypes.User.SafeUser;
 
 import java.util.Date;
 import java.util.Vector;
 
 public class RepostedPosts implements Posts {
-    public static final long serialVersionUID = 500000000L;
-    private final User owner;
+    public static final long serialVersionUID = 471876175665427586L;
+    private final SafeUser owner;
     private final String title;
     private final String description;
     private final String dateAndTime;
@@ -26,7 +26,7 @@ public class RepostedPosts implements Posts {
         repostTime = new Date().getTime();
     }
 
-    public RepostedPosts(User owner, String title, String description, String dateAndTime
+    public RepostedPosts(SafeUser owner, String title, String description, String dateAndTime
             , Posts post, String repostUsername, long repostTime, int indexInRepostUserPosts) {
         this.owner = owner;
         this.title = title;
@@ -39,7 +39,7 @@ public class RepostedPosts implements Posts {
     }
 
     @Override
-    public User getOwner() {
+    public SafeUser getOwner() {
         return owner;
     }
 

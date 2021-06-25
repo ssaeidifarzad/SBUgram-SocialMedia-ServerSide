@@ -5,8 +5,8 @@ import Model.DataTypes.User.User;
 import java.util.ArrayList;
 
 public class EditProfileResponse implements ServerMessage {
-    public static final long serialVersionUID = 333331L;
-    private ArrayList<String> responses = new ArrayList<>();
+    public static final long serialVersionUID = 461476387861634L;
+    private final ArrayList<String> responses = new ArrayList<>();
     private User user;
 
     public ArrayList<String> getResponses() {

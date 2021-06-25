@@ -5,7 +5,7 @@ import DataBase.UserDataHandler;
 import Model.DataTypes.Post.Post;
 import Model.DataTypes.Post.Posts;
 import Model.DataTypes.Post.RepostedPosts;
-import Model.DataTypes.User.SafeUserData;
+import Model.DataTypes.User.SafeUser;
 import Model.DataTypes.User.SecurityQuestions;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
@@ -53,7 +53,7 @@ public class ClientHandler implements Runnable {
                     editProfile(((EditProfileRequest) message));
                 } else if (message instanceof LogoutRequest) {
                     logout();
-                } else if (message instanceof ImageRequest) {
+                } else if (message instanceof OwnerImageRequest) {
                     sendImage();
                 } else if (message instanceof PublishRequest) {
                     publish(((PublishRequest) message));
@@ -236,7 +236,7 @@ public class ClientHandler implements Runnable {
     private void publish(PublishRequest publishRequest) {
         PublishResponse publishResponse = new PublishResponse();
         Posts p = publishRequest.getPost();
-        ((Post) p).setOwner(user);
+        ((Post) p).setOwner(createSafeUser(user));
         user.addPost(p);
         publishResponse.addResponse("success");
         publishResponse.setUser(createNewUser());
@@ -443,8 +443,8 @@ public class ClientHandler implements Runnable {
         );
     }
 
-    private SafeUserData createSafeUser(User user) {
-        SafeUserData safeUser = new SafeUserData(
+    private SafeUser createSafeUser(User user) {
+        SafeUser safeUser = new SafeUser(
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),
