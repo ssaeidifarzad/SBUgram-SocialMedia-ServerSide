@@ -5,6 +5,7 @@ import Model.DataTypes.Post.Posts;
 import Model.DataTypes.Post.RepostedPosts;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Vector;
 
@@ -15,35 +16,38 @@ public class User implements Serializable {
     private String firstName;
     private String lastName;
     private String birthDate;
-    private Gender gender;
     private boolean hasPhoto;
     private String photoFormat;
     private Vector<Posts> posts = new Vector<>();
     private Vector<User> followers = new Vector<>();
     private Vector<User> followings = new Vector<>();
     private int lastPostIndex = 0;
+    private Map<SecurityQuestions, String> securityQuestions;
 
     public User(String username) {
         this.username = username;
     }
 
-    public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto, Vector<Posts> posts,
-                Vector<User> followers, Vector<User> followings, int lastPostIndex) {
-        this(username, password, firstName, lastName, birthDate, gender, hasPhoto);
+    public User(String username, String password, String firstName, String lastName,
+                String birthDate, boolean hasPhoto, Vector<Posts> posts,
+                Vector<User> followers, Vector<User> followings, int lastPostIndex, Map<SecurityQuestions, String> securityQuestions) {
+        this(username, password, firstName, lastName, birthDate, hasPhoto, securityQuestions);
         this.posts = posts;
         this.followers = followers;
         this.followings = followings;
         this.lastPostIndex = lastPostIndex;
     }
 
-    public User(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto) {
+    public User(String username, String password, String firstName,
+                String lastName, String birthDate,
+                boolean hasPhoto, Map<SecurityQuestions, String> securityQuestions) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
-        this.gender = gender;
         this.hasPhoto = hasPhoto;
+        this.securityQuestions = securityQuestions;
     }
 
     public String getUsername() {
@@ -82,13 +86,6 @@ public class User implements Serializable {
         this.birthDate = birthDate;
     }
 
-    public Gender getGender() {
-        return gender;
-    }
-
-    public void setGender(Gender gender) {
-        this.gender = gender;
-    }
 
     public boolean hasPhoto() {
         return hasPhoto;
@@ -174,6 +171,10 @@ public class User implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUsername(), getPassword(), getFirstName(), getLastName(), getBirthDate(), getGender(), hasPhoto, getPhotoFormat());
+        return Objects.hash(getUsername(), getPassword(), getFirstName(), getLastName(), getBirthDate(), hasPhoto, getPhotoFormat());
+    }
+
+    public Map<SecurityQuestions, String> getSecurityQuestions() {
+        return securityQuestions;
     }
 }

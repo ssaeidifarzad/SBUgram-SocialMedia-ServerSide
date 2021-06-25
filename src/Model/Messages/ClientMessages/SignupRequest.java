@@ -1,6 +1,7 @@
 package Model.Messages.ClientMessages;
+import Model.DataTypes.User.SecurityQuestions;
 
-import Model.DataTypes.User.Gender;
+import java.util.Map;
 
 public class SignupRequest implements ClientMessage {
     public static final long serialVersionUID = 222220L;
@@ -9,17 +10,18 @@ public class SignupRequest implements ClientMessage {
     private String firstName;
     private String lastName;
     private String birthDate;
-    private Gender gender;
     private boolean hasPhoto;
+    private Map<SecurityQuestions, String> securityQuestions;
 
-    public SignupRequest(String username, String password, String firstName, String lastName, String birthDate, Gender gender, boolean hasPhoto) {
+    public SignupRequest(String username, String password, String firstName, String lastName,
+                         String birthDate, boolean hasPhoto, Map<SecurityQuestions, String> securityQuestions) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
-        this.gender = gender;
         this.hasPhoto = hasPhoto;
+        this.securityQuestions = securityQuestions;
     }
 
     public String getUsername() {
@@ -42,10 +44,6 @@ public class SignupRequest implements ClientMessage {
         return birthDate;
     }
 
-    public Gender getGender() {
-        return gender;
-    }
-
     public boolean isHasPhoto() {
         return hasPhoto;
     }
@@ -54,4 +52,7 @@ public class SignupRequest implements ClientMessage {
         this.hasPhoto = hasPhoto;
     }
 
+    public Map<SecurityQuestions, String> getSecurityQuestions() {
+        return securityQuestions;
+    }
 }

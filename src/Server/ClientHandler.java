@@ -6,6 +6,7 @@ import Model.DataTypes.Post.Post;
 import Model.DataTypes.Post.Posts;
 import Model.DataTypes.Post.RepostedPosts;
 import Model.DataTypes.User.SafeUserData;
+import Model.DataTypes.User.SecurityQuestions;
 import Model.DataTypes.User.User;
 import Model.Messages.ClientMessages.*;
 import Model.Messages.ImageMessage;
@@ -14,6 +15,7 @@ import Model.Messages.ServerMessages.*;
 import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Vector;
 
@@ -95,6 +97,10 @@ public class ClientHandler implements Runnable {
                     }
                     printServerMessage("getting info", "got "
                             + ((gettingOtherUserData) message).getUsername() + "'s info - " + address);
+                } else if (message instanceof PasswordRecoveryRequest) {
+                    recoverPassword(((PasswordRecoveryRequest) message));
+                } else if (message instanceof SecurityQuestionsRequest) {
+                    sendSecurityQuestions(((SecurityQuestionsRequest) message));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -164,8 +170,8 @@ public class ClientHandler implements Runnable {
                     signupRequest.getFirstName(),
                     signupRequest.getLastName(),
                     signupRequest.getBirthDate(),
-                    signupRequest.getGender(),
-                    signupRequest.isHasPhoto()
+                    signupRequest.isHasPhoto(),
+                    signupRequest.getSecurityQuestions()
             );
             Database.getInstance().addUser(user);
             UserDataHandler udh = new UserDataHandler(user);
@@ -181,7 +187,9 @@ public class ClientHandler implements Runnable {
                 }
             }
             signupResponse.addResponse("success");
-            printServerMessage("register - " + address, "registered");
+            System.out.println("[ action: register\n" +
+                    "\"" + user.getUsername() + "\" registered - " + address + "\n" +
+                    "time: " + LocalDateTime.now() + " ]\n");
         }
         sendResponse(signupResponse);
     }
@@ -203,7 +211,6 @@ public class ClientHandler implements Runnable {
             user.setLastName(editProfileRequest.getLastName());
             user.setBirthDate(editProfileRequest.getBirthDate());
             user.setPassword(editProfileRequest.getPassword());
-            user.setGender(editProfileRequest.getGender());
             user.setHasPhoto(editProfileRequest.isHasPhoto());
             response.setUser(createNewUser());
             Database.getInstance().getLoginData().put(user.getUsername(), user.getPassword());
@@ -349,6 +356,47 @@ public class ClientHandler implements Runnable {
                 post.getOwner().getUsername() + "'s post: ");
     }
 
+    private void recoverPassword(PasswordRecoveryRequest passwordRecoveryRequest) {
+        PasswordRecoveryResponse passwordRecoveryResponse = new PasswordRecoveryResponse();
+        User user = Database.getInstance().getUser(passwordRecoveryRequest.getUsername());
+        boolean confirm = true;
+        int i = 0;
+        if (passwordRecoveryRequest.getNewPassword().length() < 8) {
+            passwordRecoveryResponse.addResponse("wrong_password_format");
+            confirm = false;
+        }
+        for (Map.Entry<SecurityQuestions, String> entry : user.getSecurityQuestions().entrySet()) {
+            if (!entry.getValue().equals(passwordRecoveryRequest.getAnswers().get(i++))) {
+                passwordRecoveryResponse.addResponse("wrong_answers");
+                confirm = false;
+                break;
+            }
+        }
+        if (confirm) {
+            passwordRecoveryResponse.addResponse("success");
+            user.setPassword(passwordRecoveryRequest.getNewPassword());
+            Database.getInstance().getLoginData().put(user.getUsername(), passwordRecoveryRequest.getNewPassword());
+        }
+        sendResponse(passwordRecoveryResponse);
+    }
+
+    private void sendSecurityQuestions(SecurityQuestionsRequest securityQuestionsRequest) {
+        SecurityQuestionsResponse securityQuestionsResponse = new SecurityQuestionsResponse();
+        User user = Database.getInstance().getUser(securityQuestionsRequest.getUsername());
+        if (user == null) {
+            securityQuestionsResponse.addResponse("no_user");
+            sendResponse(securityQuestionsResponse);
+            return;
+        }
+        ArrayList<String> questions = new ArrayList<>();
+        for (SecurityQuestions s : user.getSecurityQuestions().keySet()) {
+            questions.add(s.getQuestion());
+        }
+        securityQuestionsResponse.addResponse("success");
+        securityQuestionsResponse.setQuestions(questions);
+        sendResponse(securityQuestionsResponse);
+    }
+
     private void sendImage() {
         try {
             objectOutputStream.writeObject(new ImageMessage(userDataHandler.readImage(),
@@ -383,12 +431,12 @@ public class ClientHandler implements Runnable {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getBirthDate(),
-                user.getGender(),
                 user.hasPhoto(),
                 createNewPosts(user.getPosts()),
                 new Vector<>(user.getFollowers()),
                 new Vector<>(user.getFollowings()),
-                user.getLastPostIndex()
+                user.getLastPostIndex(),
+                user.getSecurityQuestions()
         );
     }
 
