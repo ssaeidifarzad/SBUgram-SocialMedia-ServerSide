@@ -79,6 +79,22 @@ public class ClientHandler implements Runnable {
                     sendOtherProfileImage(Database.getInstance().getUser(((ProfileImageRequest) message).getUsername()));
                 } else if (message instanceof CommentRequest) {
                     leaveComment(((CommentRequest) message));
+                } else if (message instanceof gettingOwnerData) {
+                    String address = "";
+                    if (user.hasPhoto()) {
+                        address = "DataBase/UserDirectories/"
+                                + user.getUsername() + "/images." + user.getPhotoFormat();
+                    }
+                    printServerMessage("getting info", "got their info - " + address);
+                } else if (message instanceof gettingOtherUserData) {
+                    String address = "";
+                    User u = Database.getInstance().getUser(((gettingOtherUserData) message).getUsername());
+                    if (u.hasPhoto()) {
+                        address = "DataBase/UserDirectories/" +
+                                u.getUsername() + "/images." + u.getPhotoFormat();
+                    }
+                    printServerMessage("getting info", "got "
+                            + ((gettingOtherUserData) message).getUsername() + "'s info - " + address);
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -165,9 +181,7 @@ public class ClientHandler implements Runnable {
                 }
             }
             signupResponse.addResponse("success");
-            if (signupRequest.isHasPhoto()) {
-                printServerMessage("register - " + address, "registered");
-            }
+            printServerMessage("register - " + address, "registered");
         }
         sendResponse(signupResponse);
     }
@@ -332,7 +346,7 @@ public class ClientHandler implements Runnable {
         ((Post) post).leaveComment(commentRequest.getComment());
         sendResponse(new CommentResponse(createNewUser()));
         printServerMessage("comment", "left a comment on " +
-                post.getOwner().getUsername() +"'s post: ");
+                post.getOwner().getUsername() + "'s post: ");
     }
 
     private void sendImage() {
