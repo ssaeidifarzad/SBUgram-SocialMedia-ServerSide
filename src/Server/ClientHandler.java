@@ -376,6 +376,9 @@ public class ClientHandler implements Runnable {
             passwordRecoveryResponse.addResponse("success");
             user.setPassword(passwordRecoveryRequest.getNewPassword());
             Database.getInstance().getLoginData().put(user.getUsername(), passwordRecoveryRequest.getNewPassword());
+            System.out.println("[ action: password recovery\n" +
+                    "\"" + user.getUsername() + "\" changed their password\n" +
+                    "time: " + LocalDateTime.now() + " ]\n");
         }
         sendResponse(passwordRecoveryResponse);
     }
