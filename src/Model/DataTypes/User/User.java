@@ -17,7 +17,6 @@ public class User implements Serializable {
     private String lastName;
     private String birthDate;
     private boolean hasPhoto;
-    private String photoFormat;
     private Vector<Posts> posts = new Vector<>();
     private Vector<User> followers = new Vector<>();
     private Vector<User> followings = new Vector<>();
@@ -153,14 +152,6 @@ public class User implements Serializable {
         followings.remove(new User(username));
     }
 
-    public String getPhotoFormat() {
-        return photoFormat;
-    }
-
-    public void setPhotoFormat(String photoFormat) {
-        this.photoFormat = photoFormat;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -171,7 +162,7 @@ public class User implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUsername(), getPassword(), getFirstName(), getLastName(), getBirthDate(), hasPhoto, getPhotoFormat());
+        return Objects.hash(getUsername(), getPassword(), getFirstName(), getLastName(), getBirthDate(), hasPhoto);
     }
 
     public Map<SecurityQuestions, String> getSecurityQuestions() {

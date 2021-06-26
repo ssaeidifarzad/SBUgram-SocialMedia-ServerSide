@@ -9,12 +9,10 @@ import java.io.*;
 public class UserDataHandler {
     private final User user;
     private final String directoryPath;
-    private String photoFormat;
 
     public UserDataHandler(User user) {
         this.user = user;
         directoryPath = "src/DataBase/UserDirectories/" + user.getUsername();
-        photoFormat = user.getPhotoFormat();
     }
 
     public void updateData() {
@@ -25,36 +23,28 @@ public class UserDataHandler {
         }
     }
 
-    public void writeImage(byte[] data, String format) {
+    public void writeProfileImage(byte[] data) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byteArrayOutputStream.writeBytes(data);
-        try (FileOutputStream fileOutputStream = new FileOutputStream(directoryPath + "/image." + format)) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(directoryPath + "/image.jpg")) {
             byteArrayOutputStream.writeTo(fileOutputStream);
             byteArrayOutputStream.close();
-            photoFormat = format;
-            user.setPhotoFormat(format);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public byte[] readImage() {
+    public byte[] writeImageToArray() {
         byte[] imageData = new byte[0];
-        try {
-            File photo = new File(directoryPath + "/image." + photoFormat);
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            File photo = new File(directoryPath + "/image.jpg");
             BufferedImage image = ImageIO.read(photo);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ImageIO.write(image, photoFormat, byteArrayOutputStream);
+            ImageIO.write(image, "jpg", byteArrayOutputStream);
             imageData = byteArrayOutputStream.toByteArray();
-            byteArrayOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return imageData;
-    }
-
-    public String getPhotoFormat() {
-        return photoFormat;
     }
 
 }

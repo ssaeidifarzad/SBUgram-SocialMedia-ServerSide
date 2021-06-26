@@ -13,7 +13,6 @@ public class SafeUser implements Serializable {
     private final String lastName;
     private final String birthDate;
     private final boolean hasPhoto;
-    private String photoFormat;
     private final Vector<Posts> posts;
     private final int followersCount;
     private final int followingsCount;
@@ -49,16 +48,8 @@ public class SafeUser implements Serializable {
         return hasPhoto;
     }
 
-    public String getPhotoFormat() {
-        return photoFormat;
-    }
-
     public Vector<Posts> getPosts() {
         return posts;
-    }
-
-    public void setPhotoFormat(String photoFormat) {
-        this.photoFormat = photoFormat;
     }
 
     public int getFollowersCount() {

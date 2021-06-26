@@ -85,7 +85,7 @@ public class ClientHandler implements Runnable {
                     String address = "";
                     if (user.hasPhoto()) {
                         address = "DataBase/UserDirectories/"
-                                + user.getUsername() + "/images." + user.getPhotoFormat();
+                                + user.getUsername() + "/image.jpg";
                     }
                     printServerMessage("getting info", "got their info - " + address);
                 } else if (message instanceof gettingOtherUserData) {
@@ -93,7 +93,7 @@ public class ClientHandler implements Runnable {
                     User u = Database.getInstance().getUser(((gettingOtherUserData) message).getUsername());
                     if (u.hasPhoto()) {
                         address = "DataBase/UserDirectories/" +
-                                u.getUsername() + "/images." + u.getPhotoFormat();
+                                u.getUsername() + "/image.jpg";
                     }
                     printServerMessage("getting info", "got "
                             + ((gettingOtherUserData) message).getUsername() + "'s info - " + address);
@@ -133,11 +133,7 @@ public class ClientHandler implements Runnable {
                 loginResponse.addResponse("success");
                 user = Database.getInstance().getUser(lr.getUsername());
                 userDataHandler = new UserDataHandler(user);
-                User user = createNewUser();
-                if (this.user.hasPhoto()) {
-                    user.setPhotoFormat(this.user.getPhotoFormat());
-                }
-                loginResponse.setUser(user);
+                loginResponse.setUser(createNewUser());
                 printServerMessage("connect,login", "signed in");
             } else {
                 loginResponse.addResponse("wrong_password");
@@ -170,21 +166,16 @@ public class ClientHandler implements Runnable {
                     signupRequest.getFirstName(),
                     signupRequest.getLastName(),
                     signupRequest.getBirthDate(),
-                    signupRequest.isHasPhoto(),
+                    signupRequest.hasPhoto(),
                     signupRequest.getSecurityQuestions()
             );
             Database.getInstance().addUser(user);
             UserDataHandler udh = new UserDataHandler(user);
             String address = "";
-            if (signupRequest.isHasPhoto()) {
-                try {
-                    ImageMessage image = ((ImageMessage) objectInputStream.readObject());
-                    udh.writeImage(image.getData(), image.getFormat());
-                    address = "DataBase/UserDirectories/" +
-                            signupRequest.getUsername() + "/image." + image.getFormat();
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+            if (signupRequest.hasPhoto()) {
+                udh.writeProfileImage(signupRequest.getImageData());
+                address = "DataBase/UserDirectories/" +
+                        signupRequest.getUsername() + "/image.jpg";
             }
             signupResponse.addResponse("success");
             System.out.println("[ action: register\n" +
@@ -211,21 +202,15 @@ public class ClientHandler implements Runnable {
             user.setLastName(editProfileRequest.getLastName());
             user.setBirthDate(editProfileRequest.getBirthDate());
             user.setPassword(editProfileRequest.getPassword());
-            user.setHasPhoto(editProfileRequest.isHasPhoto());
-            response.setUser(createNewUser());
+            user.setHasPhoto(editProfileRequest.hasPhoto());
             Database.getInstance().getLoginData().put(user.getUsername(), user.getPassword());
             Database.getInstance().getUsers().put(user.getUsername(), user);
+            response.setUser(createNewUser());
             sendResponse(response);
             String address = "";
-            if (editProfileRequest.isHasPhoto()) {
-                try {
-                    ImageMessage image = ((ImageMessage) objectInputStream.readObject());
-                    userDataHandler.writeImage(image.getData(), image.getFormat());
-                    user.setPhotoFormat(image.getFormat());
-                    address = "DataBase/UserDirectories/" + user.getUsername() + "/image." + image.getFormat();
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+            if (editProfileRequest.hasPhoto()) {
+                    userDataHandler.writeProfileImage(editProfileRequest.getImageData());
+                    address = "DataBase/UserDirectories/" + user.getUsername() + "/image.jpg";
             }
             printServerMessage("update info - " + address, "updated their info");
         } else {
@@ -402,8 +387,7 @@ public class ClientHandler implements Runnable {
 
     private void sendImage() {
         try {
-            objectOutputStream.writeObject(new ImageMessage(userDataHandler.readImage(),
-                    userDataHandler.getPhotoFormat()));
+            objectOutputStream.writeObject(new ImageMessage(userDataHandler.writeImageToArray()));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -412,7 +396,7 @@ public class ClientHandler implements Runnable {
     private void sendOtherProfileImage(User user) {
         UserDataHandler userDataHandler = new UserDataHandler(user);
         try {
-            objectOutputStream.writeObject(new ImageMessage(userDataHandler.readImage(), userDataHandler.getPhotoFormat()));
+            objectOutputStream.writeObject(new ImageMessage(userDataHandler.writeImageToArray()));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -444,7 +428,7 @@ public class ClientHandler implements Runnable {
     }
 
     private SafeUser createSafeUser(User user) {
-        SafeUser safeUser = new SafeUser(
+        return new  SafeUser(
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),
@@ -453,9 +437,6 @@ public class ClientHandler implements Runnable {
                 createNewPosts(user.getPosts()),
                 user.getFollowers().size(),
                 user.getFollowings().size());
-        if (user.hasPhoto())
-            safeUser.setPhotoFormat(user.getPhotoFormat());
-        return safeUser;
     }
 
     private void updatePost(UpdatedPostRequest updatedPostRequest) {

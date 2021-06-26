@@ -7,13 +7,15 @@ public class EditProfileRequest implements ClientMessage {
     private final String lastName;
     private final String birthDate;
     private final boolean hasPhoto;
+    private final byte[] imageData;
 
-    public EditProfileRequest(String password, String firstName, String lastName, String birthDate, boolean hasPhoto) {
+    public EditProfileRequest(String password, String firstName, String lastName, String birthDate, boolean hasPhoto, byte[] imageData) {
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.hasPhoto = hasPhoto;
+        this.imageData = imageData;
     }
 
     public String getPassword() {
@@ -32,7 +34,11 @@ public class EditProfileRequest implements ClientMessage {
         return birthDate;
     }
 
-    public boolean isHasPhoto() {
+    public boolean hasPhoto() {
         return hasPhoto;
+    }
+
+    public byte[] getImageData() {
+        return imageData;
     }
 }
