@@ -269,7 +269,7 @@ public class ClientHandler implements Runnable {
     private void sendPosts() {
         Vector<Posts> posts = new Vector<>();
         for (User u : user.getFollowings()) {
-            posts.addAll(createNewPosts(u.getPosts()));
+            posts.addAll(u.getPosts());
         }
         posts.addAll(user.getPosts());
         sendResponse(new TimelinePostsResponse(posts));
