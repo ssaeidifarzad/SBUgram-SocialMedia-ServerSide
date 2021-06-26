@@ -20,17 +20,21 @@ public class Post implements Posts {
     private final String dateAndTime;
     private final long publishTime;
     private int indexInOwnerPosts;
+    private final boolean hasPhoto;
+    private final byte[] imageData;
 
-    public Post(String title, String description, String dateAndTime, long publishTime) {
+    public Post(String title, String description, String dateAndTime, long publishTime, boolean hasPhoto, byte[] imageData) {
         this.title = title;
         this.description = description;
         this.dateAndTime = LocalDateTime.parse(dateAndTime).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         this.publishTime = publishTime;
+        this.hasPhoto = hasPhoto;
+        this.imageData = imageData;
     }
 
     public Post(SafeUser owner, String title, String description, int likes, int reposts, Vector<Comment> comments,
                 Vector<String> likedUsernames, Vector<String> repostedUsernames, Vector<RepostedPosts> repostedPosts,
-                String dateAndTime, long publishTime, int indexInOwnerPosts) {
+                String dateAndTime, long publishTime, int indexInOwnerPosts, boolean hasPhoto, byte[] imageData) {
         this.title = title;
         this.description = description;
         this.dateAndTime = dateAndTime;
@@ -43,6 +47,8 @@ public class Post implements Posts {
         this.repostedUsernames = repostedUsernames;
         this.repostedPosts = repostedPosts;
         this.indexInOwnerPosts = indexInOwnerPosts;
+        this.hasPhoto = hasPhoto;
+        this.imageData = imageData;
     }
 
     public void setOwner(SafeUser user) {
@@ -124,6 +130,16 @@ public class Post implements Posts {
 
     public Vector<String> getRepostedUsernames() {
         return repostedUsernames;
+    }
+
+    @Override
+    public boolean hasPhoto() {
+        return hasPhoto;
+    }
+
+    @Override
+    public byte[] getImageData() {
+        return imageData;
     }
 
     private void update() {

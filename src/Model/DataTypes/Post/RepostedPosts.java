@@ -89,6 +89,16 @@ public class RepostedPosts implements Posts {
         post.repost(username, p);
     }
 
+    @Override
+    public boolean hasPhoto() {
+        return post.hasPhoto();
+    }
+
+    @Override
+    public byte[] getImageData() {
+        return post.getImageData();
+    }
+
     public String getRepostUsername() {
         return repostUsername;
     }

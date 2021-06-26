@@ -25,8 +25,6 @@ public class ClientHandler implements Runnable {
     private ObjectInputStream objectInputStream;
     private User user;
     private UserDataHandler userDataHandler;
-
-    //make it method
     public static final String BIRTHDATE_FORMAT_REGEX = "(19|20)[0-9]{2}/(1[0-2]|[1-9])/([1-9]|[1-2][0-9]|3[0-1])";
 
     public ClientHandler(Socket socket) {
@@ -97,10 +95,10 @@ public class ClientHandler implements Runnable {
                     }
                     printServerMessage("getting info", "got "
                             + ((gettingOtherUserData) message).getUsername() + "'s info - " + address);
-                } else if (message instanceof PasswordRecoveryRequest) {
-                    recoverPassword(((PasswordRecoveryRequest) message));
                 } else if (message instanceof SecurityQuestionsRequest) {
                     sendSecurityQuestions(((SecurityQuestionsRequest) message));
+                } else if (message instanceof PasswordRecoveryRequest) {
+                    recoverPassword(((PasswordRecoveryRequest) message));
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -209,8 +207,8 @@ public class ClientHandler implements Runnable {
             sendResponse(response);
             String address = "";
             if (editProfileRequest.hasPhoto()) {
-                    userDataHandler.writeProfileImage(editProfileRequest.getImageData());
-                    address = "DataBase/UserDirectories/" + user.getUsername() + "/image.jpg";
+                userDataHandler.writeProfileImage(editProfileRequest.getImageData());
+                address = "DataBase/UserDirectories/" + user.getUsername() + "/image.jpg";
             }
             printServerMessage("update info - " + address, "updated their info");
         } else {
@@ -428,7 +426,7 @@ public class ClientHandler implements Runnable {
     }
 
     private SafeUser createSafeUser(User user) {
-        return new  SafeUser(
+        return new SafeUser(
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),
@@ -479,7 +477,9 @@ public class ClientHandler implements Runnable {
                         ((Post) p).getRepostedPosts(),
                         p.getDateAndTime(),
                         p.getPublishTime(),
-                        ((Post) p).getIndexInOwnerPosts()
+                        ((Post) p).getIndexInOwnerPosts(),
+                        p.hasPhoto(),
+                        p.getImageData()
                 ));
             }
         }
@@ -511,7 +511,9 @@ public class ClientHandler implements Runnable {
                     ((Post) p).getRepostedPosts(),
                     p.getDateAndTime(),
                     p.getPublishTime(),
-                    ((Post) p).getIndexInOwnerPosts()
+                    ((Post) p).getIndexInOwnerPosts(),
+                    p.hasPhoto(),
+                    p.getImageData()
             );
         }
         return post;
